@@ -315,8 +315,8 @@ export default function AdminProductsPage() {
   const filteredProducts = products.filter((p) => {
     const matchSearch =
       !searchTerm.trim() ||
-      p.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.subCategory.toLowerCase().includes(searchTerm.toLowerCase());
+      (p?.title || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (p?.subCategory || "").toLowerCase().includes(searchTerm.toLowerCase());
 
     if (!matchSearch) return false;
     if (subCategoryFilter === "all") return true;
@@ -438,10 +438,10 @@ export default function AdminProductsPage() {
                           </div>
                           <div className="max-w-xs">
                             <div className="font-bold text-neutral-900 line-clamp-1">
-                              {p.title}
+                              {p?.title || "—"}
                             </div>
                             <div className="text-[10px] text-neutral-400 mt-0.5">
-                              ID: {p.id} &bull; Sizes: {p.sizes?.join(", ") || "S-XXL"}
+                              ID: {p?.id} &bull; Sizes: {p.sizes?.join(", ") || "S-XXL"}
                             </div>
                           </div>
                         </div>
@@ -450,14 +450,14 @@ export default function AdminProductsPage() {
                       {/* Category */}
                       <td className="py-3.5 px-4">
                         <span className="inline-block bg-neutral-100 text-neutral-800 text-[10px] font-bold px-2 py-0.5 uppercase tracking-wider">
-                          {p.subCategory}
+                          {p?.subCategory || "—"}
                         </span>
                       </td>
 
                       {/* Price */}
                       <td className="py-3.5 px-4">
                         <div className="font-bold text-neutral-900">
-                          ৳ {p.price.toLocaleString()}
+                          ৳ {p?.price?.toLocaleString()}
                         </div>
                         {p.originalPrice && (
                           <div className="text-[10px] text-neutral-400 line-through">
@@ -505,7 +505,7 @@ export default function AdminProductsPage() {
                           <Edit2 size={15} />
                         </button>
                         <button
-                          onClick={() => handleDelete(p.id, p.title)}
+                          onClick={() => handleDelete(p?.id || "", p?.title || "")}
                           className="p-1.5 text-neutral-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors cursor-pointer"
                           title="Delete product"
                         >

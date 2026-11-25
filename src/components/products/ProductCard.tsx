@@ -52,7 +52,7 @@ export default function ProductCard({ product }: { product: ProductItem }) {
       })
     );
     toast.success(`Added to bag`, {
-      description: `${product?.title} - ৳ ${product?.price.toFixed(0)}`,
+      description: `${product?.title} - ৳ ${product?.price?.toFixed(0)}`,
     });
   };
 
@@ -165,11 +165,11 @@ export default function ProductCard({ product }: { product: ProductItem }) {
           </Link>
           <div className="flex items-center gap-1.5 flex-wrap mt-1">
             <span className="text-sm font-extrabold text-neutral-900">
-              ৳ {product?.price.toFixed(0)}
+              ৳ {product?.price?.toFixed(0)}
             </span>
             {product?.originalPrice && product?.originalPrice > product?.price && (
               <span className="text-[11px] text-neutral-400 line-through">
-                ৳ {product?.originalPrice.toFixed(0)}
+                ৳ {product?.originalPrice?.toFixed(0)}
               </span>
             )}
             {discountPercent && discountPercent > 0 && (

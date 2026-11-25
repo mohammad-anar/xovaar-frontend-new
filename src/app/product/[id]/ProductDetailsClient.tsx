@@ -299,11 +299,11 @@ export default function ProductDetailsClient({ productId }: { productId: string 
             {/* Price Section */}
             <div className="flex items-center gap-3">
               <span className="text-2xl sm:text-3xl font-extrabold text-neutral-900 tracking-tight">
-                ৳ {product?.price.toFixed(0)}
+                ৳ {product?.price?.toFixed(0)}
               </span>
               {product?.originalPrice && product?.originalPrice > product?.price && (
                 <span className="text-base text-neutral-400 line-through">
-                  ৳ {product?.originalPrice.toFixed(0)}
+                  ৳ {product?.originalPrice?.toFixed(0)}
                 </span>
               )}
               {discountPercent && (

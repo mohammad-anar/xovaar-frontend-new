@@ -105,8 +105,8 @@ export default function CartDrawer() {
                   {/* Thumbnail */}
                   <div className="relative w-20 aspect-[3/4] bg-neutral-100 rounded overflow-hidden shrink-0 border border-neutral-200">
                     <Image
-                      src={getImageUrl(item.imageUrl)}
-                      alt={item.title}
+                      src={getImageUrl(item?.imageUrl || "/products/product-1.jpg")}
+                      alt={item?.title || ""}
                       fill
                       className="object-cover object-top"
                     />

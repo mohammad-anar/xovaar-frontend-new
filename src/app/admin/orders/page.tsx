@@ -211,7 +211,7 @@ export default function AdminOrdersPage() {
                         )}
                       </div>
                       <div className="text-[10px] text-neutral-400 mt-0.5">
-                        {new Date(order.createdAt).toLocaleDateString()}
+                        {order?.createdAt ? new Date(order.createdAt).toLocaleDateString() : "—"}
                       </div>
                     </td>
 
@@ -240,10 +240,10 @@ export default function AdminOrdersPage() {
                     {/* Total Amount */}
                     <td className="py-3.5 px-4">
                       <div className="font-extrabold text-neutral-900">
-                        ৳ {order.total.toLocaleString()}
+                        ৳ {order?.total?.toLocaleString()}
                       </div>
                       <div className="text-[10px] text-neutral-400 uppercase">
-                        {order.paymentMethod}
+                        {order?.paymentMethod || "—"}
                       </div>
                     </td>
 
@@ -407,12 +407,12 @@ export default function AdminOrdersPage() {
                       <div>
                         <p className="font-bold text-neutral-900 line-clamp-1">{it.title}</p>
                         <p className="text-[11px] text-neutral-400">
-                          Size: {it.size} &bull; Qty: {it.quantity} &bull; ৳ {it.price.toLocaleString()} each
+                          Size: {it.size} &bull; Qty: {it.quantity} &bull; ৳ {it?.price?.toLocaleString()} each
                         </p>
                       </div>
                     </div>
                     <span className="font-bold text-neutral-900">
-                      ৳ {(it.price * it.quantity).toLocaleString()}
+                      ৳ {((it?.price || 0) * (it?.quantity || 1)).toLocaleString()}
                     </span>
                   </div>
                 ))}

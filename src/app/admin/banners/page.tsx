@@ -237,10 +237,10 @@ export default function AdminBannersPage() {
                 <tr key={banner.id} className="hover:bg-neutral-800/30 transition-colors">
                   <td className="py-3 px-4">
                     <div className="relative w-28 h-16 bg-neutral-900 border border-neutral-700/80 overflow-hidden shrink-0">
-                      {banner.imageUrl ? (
+                      {banner?.imageUrl ? (
                         <img
                           src={getImageUrl(banner.imageUrl)}
-                          alt={banner.title}
+                          alt={banner?.title || ""}
                           className="w-full h-full object-cover"
                         />
                       ) : (
@@ -268,7 +268,7 @@ export default function AdminBannersPage() {
                   <td className="py-3 px-4">
                     {banner.productTitle ? (
                       <div className="flex items-center gap-2">
-                        {banner.productImage && (
+                        {banner?.productImage && (
                           <img
                             src={getImageUrl(banner.productImage)}
                             alt=""
@@ -318,7 +318,7 @@ export default function AdminBannersPage() {
                         <Edit2 size={13} />
                       </button>
                       <button
-                        onClick={() => handleDelete(banner.id, banner.title)}
+                        onClick={() => handleDelete(banner?.id || "", banner?.title || "")}
                         className="p-1.5 hover:bg-red-950/40 text-neutral-400 hover:text-red-400 transition-colors"
                         title="Delete Banner"
                       >

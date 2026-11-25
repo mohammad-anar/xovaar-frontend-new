@@ -371,10 +371,10 @@ export default function AdminUsersPage() {
                     {/* Orders & Spent */}
                     <td className="py-3.5 px-4">
                       <div className="font-bold text-neutral-900">
-                        {u.totalOrders} orders
+                        {u?.totalOrders || 0} orders
                       </div>
                       <div className="text-[10px] text-neutral-500 font-medium">
-                        ৳ {u.totalSpent.toLocaleString()} spent
+                        ৳ {u?.totalSpent?.toLocaleString()} spent
                       </div>
                     </td>
 
