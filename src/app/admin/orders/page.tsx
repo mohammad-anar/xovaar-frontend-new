@@ -23,6 +23,7 @@ import {
   OrderData,
   OrderStatus,
 } from "@/redux/service/order/orderApi";
+import { getImageUrl } from "@/lib/utils";
 import OrderPrintInvoice from "@/components/invoice/OrderPrintInvoice";
 import TableSkeleton from "@/components/skeleton/TableSkeleton";
 import { toast } from "sonner";
@@ -396,7 +397,7 @@ export default function AdminOrdersPage() {
                       {it.imageUrl && (
                         <div className="relative w-10 h-12 bg-neutral-100 shrink-0 border border-neutral-200">
                           <Image
-                            src={it.imageUrl}
+                            src={getImageUrl(it.imageUrl)}
                             alt={it.title}
                             fill
                             className="object-cover object-top"

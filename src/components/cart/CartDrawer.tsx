@@ -12,6 +12,7 @@ import {
 } from "@/redux/features/cart";
 import { X, Minus, Plus, Trash2, ShoppingBag, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
+import { getImageUrl } from "@/lib/utils";
 
 export default function CartDrawer() {
   const router = useRouter();
@@ -104,7 +105,7 @@ export default function CartDrawer() {
                   {/* Thumbnail */}
                   <div className="relative w-20 aspect-[3/4] bg-neutral-100 rounded overflow-hidden shrink-0 border border-neutral-200">
                     <Image
-                      src={item.imageUrl}
+                      src={getImageUrl(item.imageUrl)}
                       alt={item.title}
                       fill
                       className="object-cover object-top"

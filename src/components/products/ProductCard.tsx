@@ -11,20 +11,22 @@ import { toggleWishlist } from "@/redux/features/wishlist";
 import { useToggleWishlistMutation } from "@/redux/service/wishlist/wishlistApi";
 import { toast } from "sonner";
 import { Heart, ShoppingBag } from "lucide-react";
+import { getImageUrl } from "@/lib/utils";
 
 export default function ProductCard({ product }: { product: ProductItem }) {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const token = useAppSelector((state) => state.auth?.accessToken);
   const [toggleWishlistApi] = useToggleWishlistMutation();
-  const wishlistItems = useAppSelector((state) => state.wishlist.items);
-  const isWishlisted = wishlistItems.some((item) => item.id === product?.id);
+  const wishlistItems = useAppSelector((state) => state.wishlist?.items) || [];
+  const isWishlisted = wishlistItems.some((item) => item?.id === product?.id);
 
-  const primaryImage = product?.imageUrl || product?.images?.[0];
-  const secondaryImage =
+  const primaryImage = getImageUrl(product?.imageUrl || product?.images?.[0] || "/products/product-1.jpg");
+  const secondaryImage = getImageUrl(
     product?.images && product?.images.length > 1
       ? product?.images[1]
-      : product?.imageUrl;
+      : (product?.imageUrl || "/products/product-1.jpg")
+  );
 
   const discountPercent =
     product?.originalPrice && product?.originalPrice > product?.price

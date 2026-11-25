@@ -26,6 +26,7 @@ import {
   HeroBannerSlide,
 } from "@/redux/service/banner/bannerApi";
 import { useGetProductsQuery } from "@/redux/service/product/productApi";
+import { getImageUrl } from "@/lib/utils";
 
 export default function AdminBannersPage() {
   const { data: bannersResponse, isLoading, refetch } = useGetAllBannersAdminQuery();
@@ -238,7 +239,7 @@ export default function AdminBannersPage() {
                     <div className="relative w-28 h-16 bg-neutral-900 border border-neutral-700/80 overflow-hidden shrink-0">
                       {banner.imageUrl ? (
                         <img
-                          src={banner.imageUrl}
+                          src={getImageUrl(banner.imageUrl)}
                           alt={banner.title}
                           className="w-full h-full object-cover"
                         />
@@ -269,7 +270,7 @@ export default function AdminBannersPage() {
                       <div className="flex items-center gap-2">
                         {banner.productImage && (
                           <img
-                            src={banner.productImage}
+                            src={getImageUrl(banner.productImage)}
                             alt=""
                             className="w-7 h-7 object-cover border border-neutral-700"
                           />

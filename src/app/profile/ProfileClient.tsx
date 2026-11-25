@@ -23,6 +23,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import OrderPrintInvoice from "@/components/invoice/OrderPrintInvoice";
+import { getImageUrl } from "@/lib/utils";
 import ProfileSkeleton from "@/components/skeleton/ProfileSkeleton";
 import { useGetMyOrdersQuery } from "@/redux/service/order/orderApi";
 import { useGetMeQuery } from "@/redux/service/user/userApi";
@@ -212,7 +213,7 @@ export default function ProfileClient() {
           size: it?.size || "",
           quantity: it?.quantity || 1,
           price: it?.price || 0,
-          imageUrl: it?.imageUrl || "",
+          imageUrl: getImageUrl(it?.imageUrl || ""),
         })),
       }));
       setOrders(mappedApiOrders);

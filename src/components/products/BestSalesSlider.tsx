@@ -10,6 +10,7 @@ import {
   useGetNewArrivalsQuery,
 } from "@/redux/service/product/productApi";
 import { AdminStorage } from "@/services/adminStore";
+import { getImageUrl } from "@/lib/utils";
 
 export default function BestSalesSlider() {
   const { data: apiData } = useGetNewArrivalsQuery();
@@ -95,11 +96,12 @@ export default function BestSalesSlider() {
             }`}
         >
           {loopProducts.map((product, idx) => {
-            const primaryImage = product?.imageUrl || product?.images?.[0];
-            const secondaryImage =
+            const primaryImage = getImageUrl(product?.imageUrl || product?.images?.[0] || "/products/product-1.jpg");
+            const secondaryImage = getImageUrl(
               product?.images && product?.images.length > 1
                 ? product?.images[1]
-                : product?.imageUrl;
+                : (product?.imageUrl || "/products/product-1.jpg")
+            );
 
             return (
               <Link

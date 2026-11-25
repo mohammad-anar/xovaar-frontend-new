@@ -12,6 +12,7 @@ import {
   HeroBannerSlide,
 } from "@/redux/service/banner/bannerApi";
 import { ChevronLeft, ChevronRight, Search, ZoomIn, MoveRight } from "lucide-react";
+import { getImageUrl } from "@/lib/utils";
 
 export default function HeroSection() {
   const router = useRouter();
@@ -90,7 +91,7 @@ export default function HeroSection() {
                   }`}
               >
                 <Image
-                  src={slide.imageUrl}
+                  src={getImageUrl(slide.imageUrl)}
                   alt={`${slide.title}${slide.titleHighlight}`}
                   fill
                   priority={index === 0}

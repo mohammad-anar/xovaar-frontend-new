@@ -23,6 +23,7 @@ import {
   ZoomIn,
   ShoppingBag,
 } from "lucide-react";
+import { getImageUrl } from "@/lib/utils";
 import { toast } from "sonner";
 
 export default function ProductDetailsClient({ productId }: { productId: string }) {
@@ -50,10 +51,11 @@ export default function ProductDetailsClient({ productId }: { productId: string 
     }
   }, [apiData, productId]);
 
-  const galleryImages =
+  const rawGallery =
     product?.images && product?.images.length > 0
       ? product?.images
       : [product?.imageUrl || "/products/product-1.jpg"];
+  const galleryImages = rawGallery.map((img) => getImageUrl(img));
 
   const [activeImage, setActiveImage] = useState(galleryImages[0]);
   const [selectedSize, setSelectedSize] = useState<string>(

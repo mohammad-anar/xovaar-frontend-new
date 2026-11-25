@@ -30,6 +30,7 @@ import { useGetCategoriesQuery } from "@/redux/service/category/categoryApi";
 import RichTextEditor, { DEFAULT_FABRIC_TEMPLATE } from "@/components/admin/RichTextEditor";
 import TableSkeleton from "@/components/skeleton/TableSkeleton";
 import { toast } from "sonner";
+import { getImageUrl } from "@/lib/utils";
 
 const ALL_SIZES = ["XS", "S", "M", "L", "XL", "XXL", "3XL"];
 
@@ -428,7 +429,7 @@ export default function AdminProductsPage() {
                         <div className="flex items-center gap-3">
                           <div className="relative w-12 h-16 bg-neutral-100 shrink-0 border border-neutral-200">
                             <Image
-                              src={p.imageUrl}
+                              src={getImageUrl(p.imageUrl || p.images?.[0] || "/products/product-1.jpg")}
                               alt={p.title}
                               fill
                               unoptimized={p.imageUrl?.startsWith("data:")}
@@ -741,7 +742,7 @@ export default function AdminProductsPage() {
                     {primaryImage ? (
                       <div className="relative w-full aspect-[3/4] bg-neutral-100 border border-neutral-200 overflow-hidden group">
                         <Image
-                          src={primaryImage}
+                          src={getImageUrl(primaryImage)}
                           alt="Primary preview"
                           fill
                           unoptimized={primaryImage.startsWith("data:")}
@@ -797,7 +798,7 @@ export default function AdminProductsPage() {
                     {secondaryImage ? (
                       <div className="relative w-full aspect-[3/4] bg-neutral-100 border border-neutral-200 overflow-hidden group">
                         <Image
-                          src={secondaryImage}
+                          src={getImageUrl(secondaryImage)}
                           alt="Hover close shot preview"
                           fill
                           unoptimized={secondaryImage.startsWith("data:")}
@@ -858,7 +859,7 @@ export default function AdminProductsPage() {
                         className="relative w-16 h-20 bg-neutral-100 border border-neutral-200 overflow-hidden rounded-xs group shrink-0"
                       >
                         <Image
-                          src={img}
+                          src={getImageUrl(img)}
                           alt={`Gallery shot ${idx + 1}`}
                           fill
                           unoptimized={img.startsWith("data:")}

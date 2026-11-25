@@ -4,6 +4,7 @@ import React, { useState, useRef } from "react";
 import Link from "next/link";
 import { X, ExternalLink, ZoomIn } from "lucide-react";
 import { HeroBannerSlide } from "@/redux/service/banner/bannerApi";
+import { getImageUrl } from "@/lib/utils";
 
 interface HeroLensModalProps {
   slide: HeroBannerSlide;
@@ -91,7 +92,7 @@ export default function HeroLensModal({ slide, onClose }: HeroLensModalProps) {
           >
             {/* Base Image */}
             <img
-              src={slide?.productImage || slide?.imageUrl || "/banners/banner-1.jpg"}
+              src={getImageUrl(slide?.productImage || slide?.imageUrl || "/banners/banner-1.jpg")}
               alt={slide?.productTitle || slide?.title || "Product"}
               className="w-full h-full object-cover object-top pointer-events-none"
             />
@@ -108,8 +109,8 @@ export default function HeroLensModal({ slide, onClose }: HeroLensModalProps) {
                 className="absolute rounded-xs overflow-hidden border-2 border-white shadow-[0_12px_40px_rgba(0,0,0,0.5)] pointer-events-none ring-1 ring-black/40 z-20 bg-neutral-100"
               >
                 <img
-                  src={slide.productImage || slide.imageUrl}
-                  alt={slide.productTitle || slide.title}
+                  src={getImageUrl(slide?.productImage || slide?.imageUrl || "/banners/banner-1.jpg")}
+                  alt={slide?.productTitle || slide?.title || "Product"}
                   className="absolute max-w-none pointer-events-none select-none"
                   style={{
                     width: `${lensPos.width * zoomFactor}px`,

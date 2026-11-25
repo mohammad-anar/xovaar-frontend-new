@@ -22,6 +22,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
+import { getImageUrl } from "@/lib/utils";
 
 interface OrderSummaryData {
   orderId: string;
@@ -276,7 +277,7 @@ export default function CheckoutClient() {
                   <div className="flex items-center gap-3">
                     <div className="relative w-12 h-16 bg-neutral-100 shrink-0 border border-neutral-200">
                       <Image
-                        src={item.imageUrl}
+                        src={getImageUrl(item.imageUrl)}
                         alt={item.title}
                         fill
                         className="object-cover object-top"
@@ -633,7 +634,7 @@ export default function CheckoutClient() {
                         <div className="flex gap-3">
                           <div className="relative w-12 h-16 bg-neutral-100 shrink-0 border border-neutral-200">
                             <Image
-                              src={item.imageUrl}
+                              src={getImageUrl(item.imageUrl)}
                               alt={item.title}
                               fill
                               className="object-cover object-top"
