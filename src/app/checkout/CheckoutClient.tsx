@@ -46,7 +46,7 @@ interface OrderSummaryData {
 
 export default function CheckoutClient() {
   const dispatch = useAppDispatch();
-  const cartItems = useAppSelector((state) => state.cart.items);
+  const cartItems = useAppSelector((state) => state.cart?.items) || [];
   const [createOrderMutation] = useCreateOrderMutation();
 
   // Form Fields State
@@ -64,10 +64,10 @@ export default function CheckoutClient() {
 
   // Calculations
   const subtotal = cartItems.reduce(
-    (acc, item) => acc + item.price * item.quantity,
+    (acc, item) => acc + (item?.price || 0) * (item?.quantity || 1),
     0
   );
-  const hasFreeDelivery = cartItems.some((item) => item.freeDelivery === true) || subtotal >= 3000;
+  const hasFreeDelivery = cartItems.some((item) => item?.freeDelivery === true) || subtotal >= 3000;
   const standardDeliveryFee = deliveryMethod === "inside" ? 70 : 130;
   const deliveryFee = hasFreeDelivery ? 0 : standardDeliveryFee;
   const grandTotal = subtotal > 0 ? subtotal + deliveryFee : 0;

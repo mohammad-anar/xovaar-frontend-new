@@ -59,10 +59,10 @@ export default function AdminOrdersPage() {
 
   const filteredOrders = orders.filter((o) => {
     const matchSearch =
-      (o.orderNumber || o.id).toLowerCase().includes(searchTerm.toLowerCase()) ||
-      o.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      o.phoneNumber.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchStatus = statusFilter === "All" || o.status === statusFilter;
+      (o?.orderNumber || o?.id || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (o?.customerName || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (o?.phoneNumber || "").toLowerCase().includes(searchTerm.toLowerCase());
+    const matchStatus = statusFilter === "All" || o?.status === statusFilter;
     return matchSearch && matchStatus;
   });
 

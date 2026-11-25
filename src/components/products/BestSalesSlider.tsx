@@ -91,21 +91,20 @@ export default function BestSalesSlider() {
         onTouchEnd={() => setIsPaused(false)}
       >
         <div
-          className={`cards-slider-track items-stretch gap-4 sm:gap-6 px-4 ${
-            isPaused ? "paused" : ""
-          }`}
+          className={`cards-slider-track items-stretch gap-4 sm:gap-6 px-4 ${isPaused ? "paused" : ""
+            }`}
         >
           {loopProducts.map((product, idx) => {
-            const primaryImage = product.imageUrl || product.images?.[0];
+            const primaryImage = product?.imageUrl || product?.images?.[0];
             const secondaryImage =
-              product.images && product.images.length > 1
-                ? product.images[1]
-                : product.imageUrl;
+              product?.images && product?.images.length > 1
+                ? product?.images[1]
+                : product?.imageUrl;
 
             return (
               <Link
-                key={`slider-card-${product.id}-${idx}`}
-                href={`/product/${product.id}`}
+                key={`slider-card-${product?.id}-${idx}`}
+                href={`/product/${product?.id}`}
                 className="group w-[240px] sm:w-[270px] md:w-[285px] shrink-0 bg-white border border-neutral-200/90 rounded-[20px] overflow-hidden shadow-2xs hover:shadow-lg transition-all duration-300 flex flex-col justify-between cursor-pointer"
               >
                 {/* Product Image Area with Slide-Up Close Shot on Hover */}
@@ -113,8 +112,9 @@ export default function BestSalesSlider() {
                   {/* Primary Image */}
                   <Image
                     src={primaryImage}
-                    alt={product.title}
+                    alt={product?.title}
                     fill
+                    sizes="(max-width: 640px) 210px, 260px"
                     unoptimized={primaryImage?.startsWith("data:")}
                     className="object-cover object-center transition-transform duration-500 group-hover:scale-105 select-none p-2 sm:p-3"
                   />
@@ -124,8 +124,9 @@ export default function BestSalesSlider() {
                     <div className="absolute inset-0 translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out will-change-transform overflow-hidden z-1 bg-[#f5f5f7]">
                       <Image
                         src={secondaryImage}
-                        alt={`${product.title} close view`}
+                        alt={`${product?.title} close view`}
                         fill
+                        sizes="(max-width: 640px) 210px, 260px"
                         unoptimized={secondaryImage?.startsWith("data:")}
                         className="object-cover object-center scale-110 transition-transform duration-700 ease-out select-none p-2 sm:p-3"
                       />
@@ -133,7 +134,7 @@ export default function BestSalesSlider() {
                   )}
 
                   {/* Free Delivery Badge */}
-                  {product.freeDelivery && (
+                  {product?.freeDelivery && (
                     <span className="absolute top-3 left-3 bg-emerald-800 text-white text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-xs shadow-xs z-10">
                       Free Delivery
                     </span>
@@ -145,28 +146,28 @@ export default function BestSalesSlider() {
                   {/* Title */}
                   <h3
                     className="text-[13.5px] sm:text-[14.5px] font-bold text-neutral-900 group-hover:text-[#16A34A] transition-colors line-clamp-1"
-                    title={product.title}
+                    title={product?.title}
                   >
-                    {product.title}
+                    {product?.title}
                   </h3>
 
                   {/* Price & In Stock Row */}
                   <div className="flex items-center justify-between gap-2 mt-3 pt-0.5">
                     <div className="flex items-baseline gap-2">
                       <span className="text-[16px] sm:text-[17px] font-extrabold text-neutral-950 tracking-tight">
-                        ৳ {product.price.toLocaleString()}
+                        ৳ {product?.price.toLocaleString()}
                       </span>
-                      {product.originalPrice &&
-                        product.originalPrice > product.price && (
+                      {product?.originalPrice &&
+                        product?.originalPrice > product?.price && (
                           <span className="text-xs text-neutral-400 line-through font-normal">
-                            ৳ {product.originalPrice.toLocaleString()}
+                            ৳ {product?.originalPrice.toLocaleString()}
                           </span>
                         )}
                     </div>
 
                     {/* Pastel Green In Stock Badge - Exact match to screenshot */}
                     <span className="bg-[#e6f4ea] text-[#137333] text-[11px] font-medium px-2.5 py-0.5 rounded-md shrink-0">
-                      {product.inStock !== false ? "In Stock" : "Out of Stock"}
+                      {product?.inStock !== false ? "In Stock" : "Out of Stock"}
                     </span>
                   </div>
                 </div>

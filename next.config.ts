@@ -1,7 +1,10 @@
 import type { NextConfig } from "next";
 
+const isStandalone =
+  process.env.DOCKER_BUILD === "true" || process.env.OUTPUT_STANDALONE === "true";
+
 const nextConfig: NextConfig = {
-  output: "standalone",
+  ...(isStandalone ? { output: "standalone" } : {}),
   cacheComponents: true,
   partialPrefetching: true,
   images: {

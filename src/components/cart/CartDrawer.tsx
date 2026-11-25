@@ -16,15 +16,17 @@ import { toast } from "sonner";
 export default function CartDrawer() {
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const { items, isOpen } = useAppSelector((state) => state.cart);
+  const cartState = useAppSelector((state) => state.cart);
+  const items = cartState?.items || [];
+  const isOpen = !!cartState?.isOpen;
 
   const subtotal = items.reduce(
-    (sum, item) => sum + item.price * item.quantity,
+    (sum, item) => sum + (item?.price || 0) * (item?.quantity || 1),
     0
   );
-  const totalItemsCount = items.reduce((sum, item) => sum + item.quantity, 0);
+  const totalItemsCount = items.reduce((sum, item) => sum + (item?.quantity || 1), 0);
 
-  const hasFreeDeliveryItem = items.some((item) => item.freeDelivery === true);
+  const hasFreeDeliveryItem = items.some((item) => item?.freeDelivery === true);
   const isFreeDelivery = hasFreeDeliveryItem || subtotal >= 3000 || subtotal === 0;
   const shippingCost = isFreeDelivery ? 0 : 80;
   const grandTotal = subtotal + shippingCost;

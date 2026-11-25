@@ -177,9 +177,9 @@ export default function ProfileClient() {
   useEffect(() => {
     if (meData?.data) {
       reset({
-        name: meData.data.name || "Tanzid Mahmud",
-        email: meData.data.email || "tanzid.mahmud@example.com",
-        phone: meData.data.phone || "+880 1712-345678",
+        name: meData?.data?.name || "Tanzid Mahmud",
+        email: meData?.data?.email || "tanzid.mahmud@example.com",
+        phone: meData?.data?.phone || "+880 1712-345678",
         gender: "Male",
         address: "House 42, Road 11, Banani, Dhaka-1213",
       });
@@ -187,32 +187,32 @@ export default function ProfileClient() {
   }, [meData, reset]);
 
   useEffect(() => {
-    if (apiOrders?.data && apiOrders.data.length > 0) {
+    if (apiOrders?.data && Array.isArray(apiOrders.data) && apiOrders.data.length > 0) {
       const mappedApiOrders: UserOrder[] = apiOrders.data.map((o) => ({
-        id: o.orderNumber || o.id,
-        date: new Date(o.createdAt).toLocaleDateString("en-BD", {
+        id: o?.orderNumber || o?.id || "ORDER",
+        date: o?.createdAt ? new Date(o.createdAt).toLocaleDateString("en-BD", {
           day: "numeric",
           month: "short",
           year: "numeric",
-        }),
-        status: o.status,
-        itemsCount: o.items.length,
-        subtotal: o.subtotal,
-        deliveryFee: o.deliveryFee,
-        total: o.total,
-        customerName: o.customerName,
-        customerPhone: o.phoneNumber,
-        deliveryAddress: o.deliveryAddress,
-        deliveryNote: o.deliveryNote || undefined,
-        paymentMethod: o.paymentMethod === "COD" ? "Cash On Delivery" : o.paymentMethod,
-        deliveryType: o.deliveryType as "inside" | "outside",
-        items: o.items.map((it) => ({
-          id: it.id,
-          title: it.title,
-          size: it.size,
-          quantity: it.quantity,
-          price: it.price,
-          imageUrl: it.imageUrl,
+        }) : "N/A",
+        status: o?.status,
+        itemsCount: o?.items?.length || 0,
+        subtotal: o?.subtotal || 0,
+        deliveryFee: o?.deliveryFee || 0,
+        total: o?.total || 0,
+        customerName: o?.customerName || "",
+        customerPhone: o?.phoneNumber || "",
+        deliveryAddress: o?.deliveryAddress || "",
+        deliveryNote: o?.deliveryNote || undefined,
+        paymentMethod: o?.paymentMethod === "COD" ? "Cash On Delivery" : (o?.paymentMethod || "COD"),
+        deliveryType: (o?.deliveryType as "inside" | "outside") || "inside",
+        items: (o?.items || []).map((it) => ({
+          id: it?.id || "",
+          title: it?.title || "",
+          size: it?.size || "",
+          quantity: it?.quantity || 1,
+          price: it?.price || 0,
+          imageUrl: it?.imageUrl || "",
         })),
       }));
       setOrders(mappedApiOrders);

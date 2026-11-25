@@ -18,39 +18,39 @@ export default function ProductCard({ product }: { product: ProductItem }) {
   const token = useAppSelector((state) => state.auth?.accessToken);
   const [toggleWishlistApi] = useToggleWishlistMutation();
   const wishlistItems = useAppSelector((state) => state.wishlist.items);
-  const isWishlisted = wishlistItems.some((item) => item.id === product.id);
+  const isWishlisted = wishlistItems.some((item) => item.id === product?.id);
 
-  const primaryImage = product.imageUrl || product.images?.[0];
+  const primaryImage = product?.imageUrl || product?.images?.[0];
   const secondaryImage =
-    product.images && product.images.length > 1
-      ? product.images[1]
-      : product.imageUrl;
+    product?.images && product?.images.length > 1
+      ? product?.images[1]
+      : product?.imageUrl;
 
   const discountPercent =
-    product.originalPrice && product.originalPrice > product.price
+    product?.originalPrice && product?.originalPrice > product?.price
       ? Math.round(
-          ((product.originalPrice - product.price) / product.originalPrice) * 100
-        )
+        ((product?.originalPrice - product?.price) / product?.originalPrice) * 100
+      )
       : null;
 
   const handleQuickAdd = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     const defaultSize =
-      product.sizes && product.sizes.length > 0 ? product.sizes[0] : "M";
+      product?.sizes && product?.sizes.length > 0 ? product?.sizes[0] : "M";
     dispatch(
       addToCart({
-        id: product.id,
-        title: product.title,
-        price: product.price,
+        id: product?.id,
+        title: product?.title,
+        price: product?.price,
         imageUrl: primaryImage,
         size: defaultSize,
         quantity: 1,
-        freeDelivery: product.freeDelivery,
+        freeDelivery: product?.freeDelivery,
       })
     );
     toast.success(`Added to bag`, {
-      description: `${product.title} - ৳ ${product.price.toFixed(0)}`,
+      description: `${product?.title} - ৳ ${product?.price.toFixed(0)}`,
     });
   };
 
@@ -58,16 +58,16 @@ export default function ProductCard({ product }: { product: ProductItem }) {
     e.preventDefault();
     e.stopPropagation();
     const defaultSize =
-      product.sizes && product.sizes.length > 0 ? product.sizes[0] : "M";
+      product?.sizes && product?.sizes.length > 0 ? product?.sizes[0] : "M";
     dispatch(
       addToCart({
-        id: product.id,
-        title: product.title,
-        price: product.price,
+        id: product?.id,
+        title: product?.title,
+        price: product?.price,
         imageUrl: primaryImage,
         size: defaultSize,
         quantity: 1,
-        freeDelivery: product.freeDelivery,
+        freeDelivery: product?.freeDelivery,
       })
     );
     dispatch(closeCart());
@@ -78,16 +78,16 @@ export default function ProductCard({ product }: { product: ProductItem }) {
     e.preventDefault();
     e.stopPropagation();
     dispatch(toggleWishlist(product));
-    if (token && product.id) {
-      toggleWishlistApi(product.id).catch(() => {});
+    if (token && product?.id) {
+      toggleWishlistApi(product?.id).catch(() => { });
     }
     toast.message(
       isWishlisted ? "Removed from wishlist" : "Saved to wishlist",
-      { description: product.title }
+      { description: product?.title }
     );
   };
 
-  const productUrl = `/product/${product.slug || product.id}`;
+  const productUrl = `/product/${product?.slug || product?.id}`;
 
   return (
     <div className="group relative flex flex-col bg-white border border-neutral-200 rounded-sm overflow-hidden hover:shadow-md transition-shadow select-none">
@@ -97,7 +97,7 @@ export default function ProductCard({ product }: { product: ProductItem }) {
           {/* Base Static Image */}
           <Image
             src={primaryImage}
-            alt={product.title}
+            alt={product?.title}
             fill
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 16vw"
             unoptimized={primaryImage?.startsWith("data:")}
@@ -109,7 +109,7 @@ export default function ProductCard({ product }: { product: ProductItem }) {
             <div className="absolute inset-0 translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out will-change-transform overflow-hidden z-1 bg-neutral-100">
               <Image
                 src={secondaryImage}
-                alt={`${product.title} close shot`}
+                alt={`${product?.title} close shot`}
                 fill
                 sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 16vw"
                 unoptimized={secondaryImage?.startsWith("data:")}
@@ -126,7 +126,7 @@ export default function ProductCard({ product }: { product: ProductItem }) {
         </Link>
 
         {/* Free Delivery Badge */}
-        {product.freeDelivery && (
+        {product?.freeDelivery && (
           <span className="absolute top-2.5 left-2.5 bg-emerald-800 text-white text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-xs shadow-xs z-10">
             Free Delivery
           </span>
@@ -136,11 +136,10 @@ export default function ProductCard({ product }: { product: ProductItem }) {
         <button
           type="button"
           onClick={handleToggleWishlist}
-          className={`absolute top-2.5 right-2.5 w-7 h-7 rounded-full flex items-center justify-center shadow transition-all cursor-pointer z-10 ${
-            isWishlisted
+          className={`absolute top-2.5 right-2.5 w-7 h-7 rounded-full flex items-center justify-center shadow transition-all cursor-pointer z-10 ${isWishlisted
               ? "bg-green-50 text-green-600 scale-105"
               : "bg-white/90 hover:bg-white text-neutral-600 hover:text-black"
-          }`}
+            }`}
           aria-label="Toggle wishlist"
         >
           <Heart
@@ -154,21 +153,21 @@ export default function ProductCard({ product }: { product: ProductItem }) {
       <div className="p-3 flex-1 flex flex-col justify-between space-y-2.5">
         <div>
           <span className="text-[10px] uppercase font-bold tracking-wider text-[#16A34A]">
-            {product.subCategory || "Men"}
+            {product?.subCategory || "Men"}
           </span>
           <Link
-            href={`/product/${product.id}`}
+            href={`/product/${product?.id}`}
             className="block text-xs font-bold text-neutral-900 hover:underline line-clamp-1 mt-0.5"
           >
-            {product.title}
+            {product?.title}
           </Link>
           <div className="flex items-center gap-1.5 flex-wrap mt-1">
             <span className="text-sm font-extrabold text-neutral-900">
-              ৳ {product.price.toFixed(0)}
+              ৳ {product?.price.toFixed(0)}
             </span>
-            {product.originalPrice && product.originalPrice > product.price && (
+            {product?.originalPrice && product?.originalPrice > product?.price && (
               <span className="text-[11px] text-neutral-400 line-through">
-                ৳ {product.originalPrice.toFixed(0)}
+                ৳ {product?.originalPrice.toFixed(0)}
               </span>
             )}
             {discountPercent && discountPercent > 0 && (

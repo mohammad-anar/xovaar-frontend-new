@@ -74,13 +74,13 @@ export default function AdminAnalyticsPage() {
     ? [
         {
           name: "Inside Dhaka (৳70)",
-          orders: analytics.deliveryBreakdown.insideDhaka,
-          revenue: analytics.deliveryBreakdown.insideDhaka * 70,
+          orders: analytics?.deliveryBreakdown?.insideDhaka || 0,
+          revenue: (analytics?.deliveryBreakdown?.insideDhaka || 0) * 70,
         },
         {
           name: "Outside Dhaka (৳130)",
-          orders: analytics.deliveryBreakdown.outsideDhaka,
-          revenue: analytics.deliveryBreakdown.outsideDhaka * 130,
+          orders: analytics?.deliveryBreakdown?.outsideDhaka || 0,
+          revenue: (analytics?.deliveryBreakdown?.outsideDhaka || 0) * 130,
         },
       ]
     : DELIVERY_SHARE;

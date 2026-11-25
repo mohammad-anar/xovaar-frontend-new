@@ -44,17 +44,20 @@ export default function Navbar() {
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const { data: apiCategories } = useGetNavCategoriesQuery();
-  const rawCategories = apiCategories?.data || DEFAULT_CATEGORIES;
+  const rawCategories =
+    Array.isArray(apiCategories?.data) && apiCategories.data.length > 0
+      ? apiCategories.data
+      : DEFAULT_CATEGORIES;
   const categories = rawCategories.filter(
-    (cat) => cat.id !== "all-men" && cat.label.trim().toUpperCase() !== "MEN"
+    (cat) => cat.id !== "all-men" && cat.label?.trim().toUpperCase() !== "MEN"
   );
 
   const dispatch = useAppDispatch();
-  const user = useAppSelector((state) => state.auth.user);
-  const cartItems = useAppSelector((state) => state.cart.items);
-  const wishlistItems = useAppSelector((state) => state.wishlist.items);
+  const user = useAppSelector((state) => state.auth?.user);
+  const cartItems = useAppSelector((state) => state.cart?.items) || [];
+  const wishlistItems = useAppSelector((state) => state.wishlist?.items) || [];
 
-  const totalCartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
+  const totalCartCount = cartItems.reduce((acc, item) => acc + (item.quantity || 1), 0);
   const totalWishlistCount = wishlistItems.length;
 
   // Close profile dropdown when clicking outside

@@ -91,8 +91,8 @@ export default function HeroLensModal({ slide, onClose }: HeroLensModalProps) {
           >
             {/* Base Image */}
             <img
-              src={slide.productImage || slide.imageUrl}
-              alt={slide.productTitle || slide.title}
+              src={slide?.productImage || slide?.imageUrl || "/banners/banner-1.jpg"}
+              alt={slide?.productTitle || slide?.title || "Product"}
               className="w-full h-full object-cover object-top pointer-events-none"
             />
 
@@ -144,16 +144,16 @@ export default function HeroLensModal({ slide, onClose }: HeroLensModalProps) {
                 Featured Hero Product
               </span>
               <h2 className="text-lg sm:text-xl font-bold text-neutral-900 leading-snug">
-                {slide.productTitle || slide.title}
+                {slide?.productTitle || slide?.title || "Featured Product"}
               </h2>
               <p className="text-base font-extrabold text-neutral-900 mt-1">
-                ৳ {slide.productPrice ? slide.productPrice.toFixed(2) : "0.00"}
+                ৳ {slide?.productPrice ? slide.productPrice.toFixed(2) : "0.00"}
               </p>
             </div>
 
             <p className="text-xs text-neutral-600 leading-relaxed">
               Explore the detailed weave, texture, and refined construction of
-              our {slide.titleHighlight} series. Made with premium grade fabric
+              our {slide?.titleHighlight || ""} series. Made with premium grade fabric
               designed for longevity and breathability.
             </p>
 

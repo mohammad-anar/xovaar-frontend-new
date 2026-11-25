@@ -49,7 +49,7 @@ export default function AdminSettingsPage() {
 
   useEffect(() => {
     if (apiSettings?.data) {
-      setSettings(apiSettings.data);
+      setSettings((prev) => ({ ...prev, ...apiSettings.data }));
     }
   }, [apiSettings]);
 

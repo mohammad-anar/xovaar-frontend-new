@@ -56,7 +56,7 @@ export default function NewArrivalSection() {
           <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3.5 sm:gap-4 md:gap-5 lg:gap-6">
             {products.map((product, idx) => (
               <motion.div
-                key={product.id}
+                key={product?.id}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, amount: 0.08 }}

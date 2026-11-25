@@ -59,16 +59,16 @@ export default function AdminUsersPage() {
   const [restoreUser] = useRestoreUserMutation();
 
   const users: AdminUser[] = (apiUsersResponse?.data || []).map((u: any) => ({
-    id: u.id,
-    name: u.name,
-    email: u.email || "",
-    phone: u.phone || "",
-    role: u.role,
-    status: u.status,
-    isDeleted: u.isDeleted,
-    totalOrders: u.totalOrders || 0,
-    totalSpent: u.totalSpent || 0,
-    createdAt: u.createdAt,
+    id: u?.id || "",
+    name: u?.name || "Unnamed",
+    email: u?.email || "",
+    phone: u?.phone || "",
+    role: u?.role || "customer",
+    status: u?.status || "ACTIVE",
+    isDeleted: !!u?.isDeleted,
+    totalOrders: u?.totalOrders || 0,
+    totalSpent: u?.totalSpent || 0,
+    createdAt: u?.createdAt || new Date().toISOString(),
   }));
 
   const handleUpdateStatus = async (u: AdminUser, newStatus: string) => {

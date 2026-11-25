@@ -16,7 +16,10 @@ import { ChevronLeft, ChevronRight, Search, ZoomIn, MoveRight } from "lucide-rea
 export default function HeroSection() {
   const router = useRouter();
   const { data: apiSlides } = useGetHeroSlidesQuery();
-  const slides: HeroBannerSlide[] = apiSlides?.data || DEFAULT_HERO_SLIDES;
+  const slides: HeroBannerSlide[] =
+    Array.isArray(apiSlides?.data) && apiSlides.data.length > 0
+      ? apiSlides.data
+      : DEFAULT_HERO_SLIDES;
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [lensSlide, setLensSlide] = useState<HeroBannerSlide | null>(null);
@@ -45,7 +48,7 @@ export default function HeroSection() {
     return () => clearInterval(interval);
   }, [hasMultipleSlides, isPaused, nextSlide]);
 
-  const currentSlide = slides[currentIndex] || slides[0];
+  const currentSlide = slides[currentIndex] || slides[0] || DEFAULT_HERO_SLIDES[0];
   const isLeftAligned =
     currentSlide?.align === "left" ||
     (currentSlide?.align === undefined && currentIndex % 2 === 1);
@@ -60,7 +63,9 @@ export default function HeroSection() {
 
   const handleLensClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setLensSlide(currentSlide);
+    if (currentSlide) {
+      setLensSlide(currentSlide);
+    }
   };
 
   return (
@@ -81,9 +86,8 @@ export default function HeroSection() {
             return (
               <div
                 key={slide.id}
-                className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
-                  isActive ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
-                }`}
+                className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${isActive ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
+                  }`}
               >
                 <Image
                   src={slide.imageUrl}
@@ -152,28 +156,25 @@ export default function HeroSection() {
         {/* Main Hero Content: Left or Right aligned depending on slide design */}
         <div
           onClick={handleBannerClick}
-          className={`relative z-10 w-full max-w-[1600px] mx-auto px-4 sm:px-10 lg:px-16 flex-1 flex items-end ${
-            isLeftAligned ? "justify-start" : "justify-end"
-          } pb-3 sm:pb-8 md:pb-14 cursor-pointer`}
+          className={`relative z-10 w-full max-w-[1600px] mx-auto px-4 sm:px-10 lg:px-16 flex-1 flex items-end ${isLeftAligned ? "justify-start" : "justify-end"
+            } pb-3 sm:pb-8 md:pb-14 cursor-pointer`}
         >
           <div
-            className={`${
-              isLeftAligned ? "text-left" : "text-right"
-            } text-white max-w-lg select-none drop-shadow-[0_2px_12px_rgba(0,0,0,0.6)]`}
+            className={`${isLeftAligned ? "text-left" : "text-right"
+              } text-white max-w-lg select-none drop-shadow-[0_2px_12px_rgba(0,0,0,0.6)]`}
           >
             <h1 className="font-serif text-lg sm:text-3xl md:text-5xl lg:text-6xl font-normal tracking-tight text-white/95 leading-tight">
-              <span>{currentSlide.title}</span>
+              <span>{currentSlide?.title || "Xovaar"}</span>
               <span className="italic font-light text-white ml-0.5">
-                {currentSlide.titleHighlight}
+                {currentSlide?.titleHighlight || ""}
               </span>
             </h1>
             <p className="font-sans text-[10px] sm:text-xs md:text-base text-neutral-200 tracking-wide font-light mt-0.5 sm:mt-1 md:mt-2 line-clamp-1 sm:line-clamp-none">
-              {currentSlide.subtitle}
+              {currentSlide?.subtitle || ""}
             </p>
             <div
-              className={`mt-1 sm:mt-2 md:mt-3 flex items-center ${
-                isLeftAligned ? "justify-start" : "justify-end"
-              }`}
+              className={`mt-1 sm:mt-2 md:mt-3 flex items-center ${isLeftAligned ? "justify-start" : "justify-end"
+                }`}
             >
               <span className="inline-flex items-center gap-2 bg-black/65 hover:bg-black/85 backdrop-blur-md text-white text-[10px] sm:text-xs md:text-sm font-semibold tracking-wide px-3 py-1 sm:px-4 sm:py-1.5 rounded-full border border-white/25 shadow-md transition-all duration-200 hover:scale-105 group/btn">
                 <span>Click to view</span>
@@ -197,11 +198,10 @@ export default function HeroSection() {
                   e.stopPropagation();
                   setCurrentIndex(idx);
                 }}
-                className={`transition-all duration-300 rounded-full focus:outline-none cursor-pointer ${
-                  idx === currentIndex
-                    ? "w-5 sm:w-7 h-1.5 sm:h-2 bg-white"
-                    : "w-1.5 sm:w-2 h-1.5 sm:h-2 bg-white/50 hover:bg-white/80"
-                }`}
+                className={`transition-all duration-300 rounded-full focus:outline-none cursor-pointer ${idx === currentIndex
+                  ? "w-5 sm:w-7 h-1.5 sm:h-2 bg-white"
+                  : "w-1.5 sm:w-2 h-1.5 sm:h-2 bg-white/50 hover:bg-white/80"
+                  }`}
                 aria-label={`Go to slide ${idx + 1}`}
               />
             ))}

@@ -8,7 +8,7 @@ import { DEFAULT_NEW_ARRIVALS } from "@/redux/service/product/productApi";
 
 export function generateStaticParams() {
   return DEFAULT_NEW_ARRIVALS.map((product) => ({
-    id: product.id,
+    id: product?.id,
   }));
 }
 
@@ -19,7 +19,7 @@ export async function generateMetadata({
 }) {
   const { id } = await params;
   const product = DEFAULT_NEW_ARRIVALS.find((p) => p.id === id);
-  const title = product ? `${product.title} | XOVAAR` : "Product Details | XOVAAR";
+  const title = product ? `${product?.title} | XOVAAR` : "Product Details | XOVAAR";
   const description =
     product?.description ||
     "Signature contemporary streetwear engineered with heavyweight fabric by XOVAAR.";
@@ -50,7 +50,7 @@ export async function generateMetadata({
       images: [imageUrl],
     },
     other: {
-      "product:price:amount": product?.price ? String(product.price) : "0",
+      "product:price:amount": product?.price ? String(product?.price) : "0",
       "product:price:currency": "BDT",
       "product:availability": "in stock",
       "product:brand": "XOVAAR",

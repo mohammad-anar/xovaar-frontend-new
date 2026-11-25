@@ -18,9 +18,9 @@ export default function WishlistClient() {
   const { data: apiWishlist } = useGetWishlistQuery(undefined, { skip: !token });
   const [toggleWishlistApi] = useToggleWishlistMutation();
 
-  const reduxItems = useAppSelector((state) => state.wishlist.items);
+  const reduxItems = useAppSelector((state) => state.wishlist?.items) || [];
   const items: ProductItem[] =
-    token && apiWishlist?.data && apiWishlist.data.length > 0
+    token && Array.isArray(apiWishlist?.data) && apiWishlist.data.length > 0
       ? apiWishlist.data
       : reduxItems;
 
@@ -33,27 +33,27 @@ export default function WishlistClient() {
   const handleMoveToBag = (product: ProductItem) => {
     dispatch(
       addToCart({
-        id: product.id,
-        title: product.title,
-        price: product.price,
-        imageUrl: product.imageUrl,
+        id: product?.id,
+        title: product?.title,
+        price: product?.price,
+        imageUrl: product?.imageUrl,
         size: "M",
         quantity: 1,
       })
     );
-    dispatch(removeFromWishlist(product.id));
+    dispatch(removeFromWishlist(product?.id));
     if (token) {
-      toggleWishlistApi(product.id).catch(() => {});
+      toggleWishlistApi(product?.id).catch(() => { });
     }
     toast.success("Moved to Shopping Bag", {
-      description: `${product.title} (Size: M)`,
+      description: `${product?.title} (Size: M)`,
     });
   };
 
   const handleRemove = (id: string, title: string) => {
     dispatch(removeFromWishlist(id));
     if (token) {
-      toggleWishlistApi(id).catch(() => {});
+      toggleWishlistApi(id).catch(() => { });
     }
     toast.info("Removed from wishlist", { description: title });
   };
@@ -109,25 +109,25 @@ export default function WishlistClient() {
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4 md:gap-5">
             {items.map((product) => (
               <div
-                key={product.id}
+                key={product?.id}
                 className="group relative flex flex-col bg-white border border-neutral-200 rounded-sm overflow-hidden hover:shadow-md transition-shadow"
               >
                 {/* Image with Slide-Up Close View */}
                 <div className="relative w-full aspect-[4/5] bg-neutral-100 overflow-hidden">
-                  <Link href={`/product/${product.id}`} className="block w-full h-full relative">
+                  <Link href={`/product/${product?.id}`} className="block w-full h-full relative">
                     <Image
-                      src={product.imageUrl}
-                      alt={product.title}
+                      src={product?.imageUrl}
+                      alt={product?.title}
                       fill
                       className="object-cover object-top select-none"
                     />
 
                     {/* Secondary Close-Shot Image - Slides up smoothly from bottom to top on hover */}
-                    {product.images && product.images.length > 1 && (
+                    {product?.images && product?.images.length > 1 && (
                       <div className="absolute inset-0 translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out will-change-transform overflow-hidden z-1 bg-neutral-100">
                         <Image
-                          src={product.images[1]}
-                          alt={`${product.title} close view`}
+                          src={product?.images[1]}
+                          alt={`${product?.title} close view`}
                           fill
                           className="object-cover object-center scale-115 transition-transform duration-700 ease-out select-none"
                         />
@@ -142,7 +142,7 @@ export default function WishlistClient() {
 
                   {/* Remove Button */}
                   <button
-                    onClick={() => handleRemove(product.id, product.title)}
+                    onClick={() => handleRemove(product?.id, product?.title)}
                     className="absolute top-2.5 right-2.5 w-7 h-7 rounded-full bg-white/90 hover:bg-white text-neutral-600 hover:text-red-600 flex items-center justify-center shadow transition-colors cursor-pointer z-10"
                     aria-label="Remove from wishlist"
                   >
@@ -154,31 +154,31 @@ export default function WishlistClient() {
                 <div className="p-3 flex-1 flex flex-col justify-between space-y-2.5">
                   <div>
                     <span className="text-[10px] uppercase font-bold tracking-wider text-[#16A34A]">
-                      {product.subCategory || "Men"}
+                      {product?.subCategory || "Men"}
                     </span>
                     <Link
-                      href={`/product/${product.id}`}
+                      href={`/product/${product?.id}`}
                       className="block text-xs font-bold text-neutral-900 hover:underline line-clamp-1 mt-0.5"
                     >
-                      {product.title}
+                      {product?.title}
                     </Link>
                     <div className="flex items-center gap-1.5 flex-wrap mt-1">
                       <span className="text-sm font-extrabold text-neutral-900">
-                        ৳ {product.price.toFixed(0)}
+                        ৳ {product?.price.toFixed(0)}
                       </span>
-                      {product.originalPrice &&
-                        product.originalPrice > product.price && (
+                      {product?.originalPrice &&
+                        product?.originalPrice > product?.price && (
                           <span className="text-[11px] text-neutral-400 line-through">
-                            ৳ {product.originalPrice.toFixed(0)}
+                            ৳ {product?.originalPrice.toFixed(0)}
                           </span>
                         )}
-                      {product.originalPrice &&
-                        product.originalPrice > product.price && (
+                      {product?.originalPrice &&
+                        product?.originalPrice > product?.price && (
                           <span className="bg-red-50 text-red-700 font-bold text-[9.5px] px-1.5 py-0.5 rounded border border-red-200 leading-none">
                             {Math.round(
-                              ((product.originalPrice - product.price) /
-                                product.originalPrice) *
-                                100
+                              ((product?.originalPrice - product?.price) /
+                                product?.originalPrice) *
+                              100
                             )}
                             % Off
                           </span>

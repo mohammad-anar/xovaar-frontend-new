@@ -165,24 +165,24 @@ export default function AdminProductsPage() {
 
   const openEditModal = (p: ProductItem) => {
     setEditingProduct(p);
-    setFormTitle(p.title);
-    setFormPrice(p.price.toString());
-    setFormOriginalPrice((p.originalPrice || p.price + 200).toString());
-    const prim = p.imageUrl || (p.images && p.images[0]) || "";
-    const sec = p.images && p.images.length > 1 ? p.images[1] : "";
-    const others = p.images && p.images.length > 2 ? p.images.slice(2) : [];
+    setFormTitle(p?.title || "");
+    setFormPrice((p?.price ?? "").toString());
+    setFormOriginalPrice((p?.originalPrice || (p?.price ? p.price + 200 : "")).toString());
+    const prim = p?.imageUrl || (p?.images && p.images[0]) || "";
+    const sec = p?.images && p.images.length > 1 ? p.images[1] : "";
+    const others = p?.images && p.images.length > 2 ? p.images.slice(2) : [];
     setPrimaryImage(prim);
     setSecondaryImage(sec);
     setAdditionalImages(others);
-    setFormSubCategory(p.subCategory);
-    setFormDescription(p.description || "");
+    setFormSubCategory(p?.subCategory || "Drop-Shoulder T-Shirt");
+    setFormDescription(p?.description || "");
 
     // Extract HTML string or convert object to HTML string
     const fabricHtml =
       typeof p.fabricComposition === "string"
         ? p.fabricComposition
         : p.fabricComposition
-        ? `<ul>
+          ? `<ul>
   ${p.fabricComposition.mainFabric ? `<li><strong>Main Fabric:</strong> ${p.fabricComposition.mainFabric}</li>` : ""}
   ${p.fabricComposition.weight ? `<li><strong>Weight:</strong> ${p.fabricComposition.weight}</li>` : ""}
   ${p.fabricComposition.material ? `<li><strong>Material:</strong> ${p.fabricComposition.material}</li>` : ""}
@@ -191,7 +191,7 @@ export default function AdminProductsPage() {
   ${p.fabricComposition.stitching ? `<li><strong>Stitching:</strong> ${p.fabricComposition.stitching}</li>` : ""}
   ${p.fabricComposition.silhouette ? `<li><strong>Silhouette:</strong> ${p.fabricComposition.silhouette}</li>` : ""}
 </ul>`
-        : DEFAULT_FABRIC_TEMPLATE;
+          : DEFAULT_FABRIC_TEMPLATE;
     setFormFabricComposition(fabricHtml);
 
     setFormInStock(p.inStock !== false);
@@ -235,13 +235,13 @@ export default function AdminProductsPage() {
     if (editingProduct) {
       // Update
       updateProduct({
-        id: editingProduct.id,
+        id: editingProduct?.id,
         title: formTitle.trim(),
         price: priceNum,
         originalPrice: origPriceNum,
         imageUrl: primaryImage,
         images: allImages,
-        categoryId: editingProduct.categoryId || categoryId,
+        categoryId: editingProduct?.categoryId || categoryId,
         subCategory: formSubCategory,
         description: formDescription.trim(),
         fabricComposition: formFabricComposition.trim() || undefined,
@@ -398,126 +398,126 @@ export default function AdminProductsPage() {
         <TableSkeleton rows={6} columns={5} hasThumbnails={true} />
       ) : (
         <div className="bg-white border border-neutral-200/90 shadow-2xs overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-[#faf6f2] text-neutral-600 uppercase tracking-wider text-[10px] font-bold border-b border-neutral-200">
-              <tr>
-                <th className="py-3.5 px-4">Product</th>
-                <th className="py-3.5 px-4">Sub-Category</th>
-                <th className="py-3.5 px-4">Price</th>
-                <th className="py-3.5 px-4">Stock Status</th>
-                <th className="py-3.5 px-4 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-neutral-100">
-              {filteredProducts.length === 0 ? (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-[#faf6f2] text-neutral-600 uppercase tracking-wider text-[10px] font-bold border-b border-neutral-200">
                 <tr>
-                  <td colSpan={5} className="py-12 text-center text-neutral-400">
-                    <Package size={32} className="mx-auto mb-2 opacity-40" />
-                    No products found matching your search.
-                  </td>
+                  <th className="py-3.5 px-4">Product</th>
+                  <th className="py-3.5 px-4">Sub-Category</th>
+                  <th className="py-3.5 px-4">Price</th>
+                  <th className="py-3.5 px-4">Stock Status</th>
+                  <th className="py-3.5 px-4 text-right">Actions</th>
                 </tr>
-              ) : (
-                filteredProducts.map((p) => (
-                  <tr
-                    key={p.id}
-                    className="hover:bg-neutral-50/70 transition-colors"
-                  >
-                    {/* Product image & title */}
-                    <td className="py-3.5 px-4">
-                      <div className="flex items-center gap-3">
-                        <div className="relative w-12 h-16 bg-neutral-100 shrink-0 border border-neutral-200">
-                          <Image
-                            src={p.imageUrl}
-                            alt={p.title}
-                            fill
-                            unoptimized={p.imageUrl?.startsWith("data:")}
-                            className="object-cover object-top"
-                          />
-                        </div>
-                        <div className="max-w-xs">
-                          <div className="font-bold text-neutral-900 line-clamp-1">
-                            {p.title}
-                          </div>
-                          <div className="text-[10px] text-neutral-400 mt-0.5">
-                            ID: {p.id} &bull; Sizes: {p.sizes?.join(", ") || "S-XXL"}
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-
-                    {/* Category */}
-                    <td className="py-3.5 px-4">
-                      <span className="inline-block bg-neutral-100 text-neutral-800 text-[10px] font-bold px-2 py-0.5 uppercase tracking-wider">
-                        {p.subCategory}
-                      </span>
-                    </td>
-
-                    {/* Price */}
-                    <td className="py-3.5 px-4">
-                      <div className="font-bold text-neutral-900">
-                        ৳ {p.price.toLocaleString()}
-                      </div>
-                      {p.originalPrice && (
-                        <div className="text-[10px] text-neutral-400 line-through">
-                          ৳ {p.originalPrice.toLocaleString()}
-                        </div>
-                      )}
-                      {p.freeDelivery && (
-                        <span className="inline-block mt-1 bg-emerald-50 text-emerald-800 border border-emerald-200 text-[9px] font-bold px-1.5 py-0.2 rounded uppercase">
-                          Free Delivery
-                        </span>
-                      )}
-                    </td>
-
-                    {/* Stock Status toggle */}
-                    <td className="py-3.5 px-4">
-                      <button
-                        onClick={() => toggleStockStatus(p)}
-                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-bold cursor-pointer transition-colors ${p.inStock !== false
-                          ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
-                          : "bg-red-50 text-red-700 hover:bg-red-100"
-                          }`}
-                        title="Click to toggle status"
-                      >
-                        {p.inStock !== false ? (
-                          <>
-                            <CheckCircle2 size={12} />
-                            <span>In Stock</span>
-                          </>
-                        ) : (
-                          <>
-                            <AlertCircle size={12} />
-                            <span>Out of Stock</span>
-                          </>
-                        )}
-                      </button>
-                    </td>
-
-                    {/* Actions */}
-                    <td className="py-3.5 px-4 text-right space-x-2">
-                      <button
-                        onClick={() => openEditModal(p)}
-                        className="p-1.5 text-neutral-500 hover:text-black hover:bg-neutral-100 rounded transition-colors cursor-pointer"
-                        title="Edit product"
-                      >
-                        <Edit2 size={15} />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(p.id, p.title)}
-                        className="p-1.5 text-neutral-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors cursor-pointer"
-                        title="Delete product"
-                      >
-                        <Trash2 size={15} />
-                      </button>
+              </thead>
+              <tbody className="divide-y divide-neutral-100">
+                {filteredProducts.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="py-12 text-center text-neutral-400">
+                      <Package size={32} className="mx-auto mb-2 opacity-40" />
+                      No products found matching your search.
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                ) : (
+                  filteredProducts.map((p) => (
+                    <tr
+                      key={p.id}
+                      className="hover:bg-neutral-50/70 transition-colors"
+                    >
+                      {/* Product image & title */}
+                      <td className="py-3.5 px-4">
+                        <div className="flex items-center gap-3">
+                          <div className="relative w-12 h-16 bg-neutral-100 shrink-0 border border-neutral-200">
+                            <Image
+                              src={p.imageUrl}
+                              alt={p.title}
+                              fill
+                              unoptimized={p.imageUrl?.startsWith("data:")}
+                              className="object-cover object-top"
+                            />
+                          </div>
+                          <div className="max-w-xs">
+                            <div className="font-bold text-neutral-900 line-clamp-1">
+                              {p.title}
+                            </div>
+                            <div className="text-[10px] text-neutral-400 mt-0.5">
+                              ID: {p.id} &bull; Sizes: {p.sizes?.join(", ") || "S-XXL"}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* Category */}
+                      <td className="py-3.5 px-4">
+                        <span className="inline-block bg-neutral-100 text-neutral-800 text-[10px] font-bold px-2 py-0.5 uppercase tracking-wider">
+                          {p.subCategory}
+                        </span>
+                      </td>
+
+                      {/* Price */}
+                      <td className="py-3.5 px-4">
+                        <div className="font-bold text-neutral-900">
+                          ৳ {p.price.toLocaleString()}
+                        </div>
+                        {p.originalPrice && (
+                          <div className="text-[10px] text-neutral-400 line-through">
+                            ৳ {p.originalPrice.toLocaleString()}
+                          </div>
+                        )}
+                        {p.freeDelivery && (
+                          <span className="inline-block mt-1 bg-emerald-50 text-emerald-800 border border-emerald-200 text-[9px] font-bold px-1.5 py-0.2 rounded uppercase">
+                            Free Delivery
+                          </span>
+                        )}
+                      </td>
+
+                      {/* Stock Status toggle */}
+                      <td className="py-3.5 px-4">
+                        <button
+                          onClick={() => toggleStockStatus(p)}
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-bold cursor-pointer transition-colors ${p.inStock !== false
+                            ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                            : "bg-red-50 text-red-700 hover:bg-red-100"
+                            }`}
+                          title="Click to toggle status"
+                        >
+                          {p.inStock !== false ? (
+                            <>
+                              <CheckCircle2 size={12} />
+                              <span>In Stock</span>
+                            </>
+                          ) : (
+                            <>
+                              <AlertCircle size={12} />
+                              <span>Out of Stock</span>
+                            </>
+                          )}
+                        </button>
+                      </td>
+
+                      {/* Actions */}
+                      <td className="py-3.5 px-4 text-right space-x-2">
+                        <button
+                          onClick={() => openEditModal(p)}
+                          className="p-1.5 text-neutral-500 hover:text-black hover:bg-neutral-100 rounded transition-colors cursor-pointer"
+                          title="Edit product"
+                        >
+                          <Edit2 size={15} />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(p.id, p.title)}
+                          className="p-1.5 text-neutral-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors cursor-pointer"
+                          title="Delete product"
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
       )}
 
       {/* Add / Edit Product Modal */}

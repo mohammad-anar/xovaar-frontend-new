@@ -390,7 +390,7 @@ export const AdminStorage = {
 
   updateProduct(product: ProductItem): ProductItem[] {
     const list = this.getProducts();
-    const updated = list.map((p) => (p.id === product.id ? product : p));
+    const updated = list.map((p) => (p.id === product?.id ? product : p));
     this.saveProducts(updated);
     return updated;
   },
@@ -474,13 +474,13 @@ export const AdminStorage = {
               paymentMethod: po.paymentMethod || "Cash On Delivery",
               items: Array.isArray(po.items)
                 ? po.items.map((it: any, idx: number) => ({
-                    id: it.id || `item-${idx}`,
-                    title: typeof it === "string" ? it : it.title || "Product Item",
-                    price: it.price || Math.round(po.total / po.items.length),
-                    imageUrl: it.imageUrl,
-                    size: it.size || "M",
-                    quantity: it.quantity || 1,
-                  }))
+                  id: it.id || `item-${idx}`,
+                  title: typeof it === "string" ? it : it.title || "Product Item",
+                  price: it.price || Math.round(po.total / po.items.length),
+                  imageUrl: it.imageUrl,
+                  size: it.size || "M",
+                  quantity: it.quantity || 1,
+                }))
                 : [],
             });
           }
@@ -506,8 +506,8 @@ export const AdminStorage = {
           status === "MANUAL"
             ? true
             : manual !== undefined
-            ? manual
-            : (o.manual ?? false);
+              ? manual
+              : (o.manual ?? false);
         return {
           ...o,
           status,
@@ -533,8 +533,8 @@ export const AdminStorage = {
           status: nextManual
             ? ("MANUAL" as OrderStatus)
             : o.status === "MANUAL"
-            ? ("PENDING" as OrderStatus)
-            : o.status,
+              ? ("PENDING" as OrderStatus)
+              : o.status,
         };
       }
       return o;

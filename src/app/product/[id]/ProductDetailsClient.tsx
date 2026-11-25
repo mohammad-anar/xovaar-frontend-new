@@ -51,22 +51,22 @@ export default function ProductDetailsClient({ productId }: { productId: string 
   }, [apiData, productId]);
 
   const galleryImages =
-    product.images && product.images.length > 0
-      ? product.images
-      : [product.imageUrl, product.imageUrl, product.imageUrl];
+    product?.images && product?.images.length > 0
+      ? product?.images
+      : [product?.imageUrl || "/products/product-1.jpg"];
 
   const [activeImage, setActiveImage] = useState(galleryImages[0]);
   const [selectedSize, setSelectedSize] = useState<string>(
-    product.sizes?.[0] || "M"
+    product?.sizes?.[0] || "M"
   );
 
   useEffect(() => {
     if (galleryImages.length > 0) {
       setActiveImage(galleryImages[0]);
     }
-    if (product.sizes && product.sizes.length > 0) {
-      if (!product.sizes.includes(selectedSize)) {
-        setSelectedSize(product.sizes[0]);
+    if (product?.sizes && product?.sizes.length > 0) {
+      if (!product?.sizes.includes(selectedSize)) {
+        setSelectedSize(product?.sizes[0]);
       }
     }
   }, [product]);
@@ -75,8 +75,8 @@ export default function ProductDetailsClient({ productId }: { productId: string 
   const [isPolicyOpen, setIsPolicyOpen] = useState(true);
 
   // Wishlist state from Redux
-  const wishlistItems = useAppSelector((state) => state.wishlist.items);
-  const isWishlisted = wishlistItems.some((item) => item.id === product.id);
+  const wishlistItems = useAppSelector((state) => state.wishlist?.items) || [];
+  const isWishlisted = wishlistItems.some((item) => item?.id === product?.id);
 
   // Interactive Lens Loupe Zoom
   const [lensPos, setLensPos] = useState({
@@ -114,39 +114,39 @@ export default function ProductDetailsClient({ productId }: { productId: string 
   };
 
   const discountPercent =
-    product.originalPrice && product.originalPrice > product.price
+    product?.originalPrice && product?.originalPrice > product?.price
       ? Math.round(
-        ((product.originalPrice - product.price) / product.originalPrice) * 100
+        ((product?.originalPrice - product?.price) / product?.originalPrice) * 100
       )
       : null;
 
   const handleAddToCart = () => {
     dispatch(
       addToCart({
-        id: product.id,
-        title: product.title,
-        price: product.price,
+        id: product?.id,
+        title: product?.title,
+        price: product?.price,
         imageUrl: activeImage,
         size: selectedSize,
         quantity,
-        freeDelivery: product.freeDelivery,
+        freeDelivery: product?.freeDelivery,
       })
     );
     toast.success("Added to Shopping Bag", {
-      description: `${quantity}x ${product.title} (Size: ${selectedSize})`,
+      description: `${quantity}x ${product?.title} (Size: ${selectedSize})`,
     });
   };
 
   const handleBuyNow = () => {
     dispatch(
       addToCart({
-        id: product.id,
-        title: product.title,
-        price: product.price,
+        id: product?.id,
+        title: product?.title,
+        price: product?.price,
         imageUrl: activeImage,
         size: selectedSize,
         quantity,
-        freeDelivery: product.freeDelivery,
+        freeDelivery: product?.freeDelivery,
       })
     );
     dispatch(closeCart());
@@ -157,7 +157,7 @@ export default function ProductDetailsClient({ productId }: { productId: string 
     dispatch(toggleWishlist(product));
     toast.message(
       isWishlisted ? "Removed from wishlist" : "Saved to wishlist",
-      { description: product.title }
+      { description: product?.title }
     );
   };
 
@@ -175,7 +175,7 @@ export default function ProductDetailsClient({ productId }: { productId: string 
           </Link>
           <ChevronRight size={13} className="text-neutral-400" />
           <span className="text-neutral-900 font-semibold truncate max-w-[200px] sm:max-w-md">
-            {product.title}
+            {product?.title}
           </span>
         </nav>
 
@@ -200,7 +200,7 @@ export default function ProductDetailsClient({ productId }: { productId: string 
               {/* Base Image */}
               <img
                 src={activeImage}
-                alt={product.title}
+                alt={product?.title}
                 className="w-full h-full object-cover object-top pointer-events-none"
               />
 
@@ -276,7 +276,7 @@ export default function ProductDetailsClient({ productId }: { productId: string 
             {/* Header: Title & Wishlist Button */}
             <div className="flex items-start justify-between gap-4">
               <h1 className="text-xl sm:text-2xl font-bold text-neutral-900 leading-tight">
-                {product.title}
+                {product?.title}
               </h1>
               <button
                 type="button"
@@ -297,11 +297,11 @@ export default function ProductDetailsClient({ productId }: { productId: string 
             {/* Price Section */}
             <div className="flex items-center gap-3">
               <span className="text-2xl sm:text-3xl font-extrabold text-neutral-900 tracking-tight">
-                ৳ {product.price.toFixed(0)}
+                ৳ {product?.price.toFixed(0)}
               </span>
-              {product.originalPrice && product.originalPrice > product.price && (
+              {product?.originalPrice && product?.originalPrice > product?.price && (
                 <span className="text-base text-neutral-400 line-through">
-                  ৳ {product.originalPrice.toFixed(0)}
+                  ৳ {product?.originalPrice.toFixed(0)}
                 </span>
               )}
               {discountPercent && (
@@ -317,7 +317,7 @@ export default function ProductDetailsClient({ productId }: { productId: string 
                 Select Size:
               </p>
               <div className="flex flex-wrap items-center gap-2">
-                {(product.sizes || ["S", "M", "L", "XL", "XXL"]).map((size) => {
+                {(product?.sizes || ["S", "M", "L", "XL", "XXL"]).map((size) => {
                   const isSelected = selectedSize === size;
                   return (
                     <button
@@ -435,7 +435,7 @@ export default function ProductDetailsClient({ productId }: { productId: string 
             {/* Product Narrative Description */}
             <div className="space-y-3 pt-2 text-xs text-neutral-600 leading-relaxed border-t border-neutral-200/60">
               <p>
-                {product.description ||
+                {product?.description ||
                   "Crafted with meticulous attention to detail and designed for superior comfort and durability. The fabric moves effortlessly with you while retaining structured elegance throughout the day."}
               </p>
             </div>
@@ -445,45 +445,45 @@ export default function ProductDetailsClient({ productId }: { productId: string 
               <h3 className="font-extrabold text-[13px] text-neutral-950 uppercase tracking-wide">
                 FABRIC &amp; COMPOSITION
               </h3>
-              {typeof product.fabricComposition === "string" ? (
+              {typeof product?.fabricComposition === "string" ? (
                 <div
                   className="prose prose-neutral max-w-none text-[13px] text-neutral-700 leading-relaxed [&>ul]:list-disc [&>ul]:pl-5 [&>ul]:space-y-2 [&>ol]:list-decimal [&>ol]:pl-5 [&>ol]:space-y-2 [&_strong]:text-neutral-950 [&_strong]:font-bold"
-                  dangerouslySetInnerHTML={{ __html: product.fabricComposition }}
+                  dangerouslySetInnerHTML={{ __html: product?.fabricComposition }}
                 />
               ) : (
                 <ul className="space-y-2 text-[13px] text-neutral-700 list-disc pl-5 leading-relaxed">
                   <li>
                     <strong className="text-neutral-950 font-bold">Main Fabric:</strong>{" "}
-                    {product.fabricComposition?.mainFabric ||
+                    {product?.fabricComposition?.mainFabric ||
                       "Enzyme-washed combed cotton jersey"}
                   </li>
                   <li>
                     <strong className="text-neutral-950 font-bold">Weight:</strong>{" "}
-                    {product.fabricComposition?.weight ||
+                    {product?.fabricComposition?.weight ||
                       "240 GSM — premium heavy texture"}
                   </li>
                   <li>
                     <strong className="text-neutral-950 font-bold">Material:</strong>{" "}
-                    {product.fabricComposition?.material || "100% Cotton"}
+                    {product?.fabricComposition?.material || "100% Cotton"}
                   </li>
                   <li>
                     <strong className="text-neutral-950 font-bold">Cuffs:</strong>{" "}
-                    {product.fabricComposition?.cuffs ||
+                    {product?.fabricComposition?.cuffs ||
                       "Ribbed fabric that holds its shape wear after wear"}
                   </li>
                   <li>
                     <strong className="text-neutral-950 font-bold">Zipper:</strong>{" "}
-                    {product.fabricComposition?.zipper ||
+                    {product?.fabricComposition?.zipper ||
                       "Hidden front zip for a clean, uninterrupted look"}
                   </li>
                   <li>
                     <strong className="text-neutral-950 font-bold">Stitching:</strong>{" "}
-                    {product.fabricComposition?.stitching ||
+                    {product?.fabricComposition?.stitching ||
                       "Fine matching-colour thread throughout"}
                   </li>
                   <li>
                     <strong className="text-neutral-950 font-bold">Silhouette:</strong>{" "}
-                    {product.fabricComposition?.silhouette ||
+                    {product?.fabricComposition?.silhouette ||
                       "Relaxed drop-shoulder streetwear cut"}
                   </li>
                 </ul>
