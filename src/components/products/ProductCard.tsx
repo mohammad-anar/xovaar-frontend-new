@@ -8,12 +8,15 @@ import { ProductItem } from "@/redux/service/product/productApi";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks/hooks";
 import { addToCart, closeCart } from "@/redux/features/cart";
 import { toggleWishlist } from "@/redux/features/wishlist";
+import { useToggleWishlistMutation } from "@/redux/service/wishlist/wishlistApi";
 import { toast } from "sonner";
 import { Heart, ShoppingBag } from "lucide-react";
 
 export default function ProductCard({ product }: { product: ProductItem }) {
   const router = useRouter();
   const dispatch = useAppDispatch();
+  const token = useAppSelector((state) => state.auth?.accessToken);
+  const [toggleWishlistApi] = useToggleWishlistMutation();
   const wishlistItems = useAppSelector((state) => state.wishlist.items);
   const isWishlisted = wishlistItems.some((item) => item.id === product.id);
 
@@ -75,17 +78,22 @@ export default function ProductCard({ product }: { product: ProductItem }) {
     e.preventDefault();
     e.stopPropagation();
     dispatch(toggleWishlist(product));
+    if (token && product.id) {
+      toggleWishlistApi(product.id).catch(() => {});
+    }
     toast.message(
       isWishlisted ? "Removed from wishlist" : "Saved to wishlist",
       { description: product.title }
     );
   };
 
+  const productUrl = `/product/${product.slug || product.id}`;
+
   return (
     <div className="group relative flex flex-col bg-white border border-neutral-200 rounded-sm overflow-hidden hover:shadow-md transition-shadow select-none">
       {/* Product Image Area with Slide-Up Close Shot */}
       <div className="relative w-full aspect-[4/5] bg-neutral-100 overflow-hidden">
-        <Link href={`/product/${product.id}`} className="block w-full h-full relative">
+        <Link href={productUrl} className="block w-full h-full relative">
           {/* Base Static Image */}
           <Image
             src={primaryImage}

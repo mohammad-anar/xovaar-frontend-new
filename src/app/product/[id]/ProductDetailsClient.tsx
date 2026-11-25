@@ -34,7 +34,7 @@ export default function ProductDetailsClient({ productId }: { productId: string 
   const [product, setProduct] = useState<ProductItem>(() => {
     return (
       apiData?.data ||
-      DEFAULT_NEW_ARRIVALS.find((p) => p.id === productId) ||
+      DEFAULT_NEW_ARRIVALS.find((p) => p.id === productId || p.slug === productId) ||
       DEFAULT_NEW_ARRIVALS[0]
     );
   });

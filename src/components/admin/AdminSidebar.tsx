@@ -12,6 +12,7 @@ import {
   ShoppingBag,
   Users,
   Settings,
+  Image as ImageIcon,
   ExternalLink,
   LogOut,
   X,
@@ -47,6 +48,12 @@ const NAV_ITEMS = [
     name: "Categories",
     href: "/admin/categories",
     icon: Layers,
+    badge: null,
+  },
+  {
+    name: "Hero Banners",
+    href: "/admin/banners",
+    icon: ImageIcon,
     badge: null,
   },
   {

@@ -5,6 +5,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks/hooks";
 import { removeFromCart, openCart, clearCart } from "@/redux/features/cart";
+import { setUser } from "@/redux/features/auth";
+import { useCreateOrderMutation } from "@/redux/service/order/orderApi";
 import {
   User,
   Truck,
@@ -45,6 +47,7 @@ interface OrderSummaryData {
 export default function CheckoutClient() {
   const dispatch = useAppDispatch();
   const cartItems = useAppSelector((state) => state.cart.items);
+  const [createOrderMutation] = useCreateOrderMutation();
 
   // Form Fields State
   const [fullName, setFullName] = useState("");
@@ -93,7 +96,7 @@ export default function CheckoutClient() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handlePlaceOrder = (e: React.FormEvent) => {
+  const handlePlaceOrder = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (cartItems.length === 0) {
@@ -108,7 +111,6 @@ export default function CheckoutClient() {
 
     setIsSubmitting(true);
 
-    const generatedOrderId = `XV-${Math.floor(100000 + Math.random() * 900000)}`;
     const now = new Date();
     const formattedDate = now.toLocaleDateString("en-BD", {
       day: "numeric",
@@ -118,74 +120,78 @@ export default function CheckoutClient() {
       minute: "2-digit",
     });
 
-    const orderRecord: OrderSummaryData = {
-      orderId: generatedOrderId,
-      customerName: fullName.trim(),
-      phoneNumber: phoneNumber.trim(),
-      deliveryAddress: deliveryAddress.trim(),
-      deliveryNote: deliveryNote.trim(),
-      deliveryType: deliveryMethod,
-      deliveryFee,
-      items: [...cartItems],
-      subtotal,
-      total: grandTotal,
-      orderDate: formattedDate,
-    };
+    try {
+      const res = await createOrderMutation({
+        customerName: fullName.trim(),
+        phoneNumber: phoneNumber.trim(),
+        deliveryAddress: deliveryAddress.trim(),
+        deliveryNote: deliveryNote.trim() || undefined,
+        deliveryType: deliveryMethod,
+        deliveryFee,
+        paymentMethod: paymentMethod === "cod" ? "COD" : paymentMethod.toUpperCase(),
+        items: cartItems.map((item) => ({
+          productId: item.id && /^[0-9a-fA-F]{24}$/.test(item.id) ? item.id : undefined,
+          title: item.title,
+          price: item.price,
+          imageUrl: item.imageUrl,
+          size: item.size || "M",
+          quantity: item.quantity,
+        })),
+      }).unwrap();
 
-    setTimeout(() => {
-      // 1. Save order to confirmed state
-      setConfirmedOrder(orderRecord);
+      const orderNumber = res.data?.orderNumber || `XV-0001`;
+      const invoiceNumber = res.data?.invoice?.invoiceNumber || `INV-0001`;
 
-      // Persist to user_orders in localStorage for Profile page integration
-      if (typeof window !== "undefined") {
-        try {
-          const existing = JSON.parse(localStorage.getItem("user_orders") || "[]");
-          localStorage.setItem(
-            "user_orders",
-            JSON.stringify([
-              {
-                id: generatedOrderId,
-                date: formattedDate,
-                status: "PENDING",
-                manual: false,
-                itemsCount: cartItems.length,
-                subtotal: subtotal,
-                deliveryFee: deliveryFee,
-                total: grandTotal,
-                customerName: fullName.trim(),
-                customerPhone: phoneNumber.trim(),
-                deliveryAddress: deliveryAddress.trim(),
-                deliveryNote: deliveryNote.trim(),
-                paymentMethod: "Cash On Delivery",
-                deliveryType: deliveryMethod,
-                items: cartItems.map((item) => ({
-                  id: item.id,
-                  title: item.title,
-                  size: item.size,
-                  quantity: item.quantity,
-                  price: item.price,
-                  imageUrl: item.imageUrl,
-                })),
-              },
-              ...existing,
-            ])
-          );
-        } catch {
-          // ignore storage error
+      // Auto-login guest customer if auth payload was returned
+      if (res.data?.auth) {
+        const { user: authUser, accessToken, refreshToken } = res.data.auth;
+        if (typeof document !== "undefined") {
+          const maxAge = 30 * 24 * 60 * 60;
+          document.cookie = `accessToken=${encodeURIComponent(accessToken)}; path=/; max-age=${maxAge}; SameSite=Lax`;
+          document.cookie = `refreshToken=${encodeURIComponent(refreshToken)}; path=/; max-age=${maxAge}; SameSite=Lax`;
         }
+        dispatch(
+          setUser({
+            user: {
+              userId: authUser.id,
+              name: authUser.name,
+              email: authUser.email || undefined,
+              phone: authUser.phone || undefined,
+              role: authUser.role?.toLowerCase() || "customer",
+              isDefaultPassword: authUser.isDefaultPassword,
+            },
+            accessToken,
+            refreshToken,
+          })
+        );
       }
 
-      // 2. Empty the cart in Redux as requested
+      const orderRecord: OrderSummaryData = {
+        orderId: orderNumber,
+        customerName: fullName.trim(),
+        phoneNumber: phoneNumber.trim(),
+        deliveryAddress: deliveryAddress.trim(),
+        deliveryNote: deliveryNote.trim(),
+        deliveryType: deliveryMethod,
+        deliveryFee,
+        items: [...cartItems],
+        subtotal,
+        total: grandTotal,
+        orderDate: formattedDate,
+      };
+
+      setConfirmedOrder(orderRecord);
       dispatch(clearCart());
-      setIsSubmitting(false);
-
       toast.success("Order Placed Successfully!", {
-        description: `Order ID ${generatedOrderId} confirmed via Cash on Delivery.`,
+        description: `Order ID ${orderNumber} confirmed! Invoice #${invoiceNumber} issued.`,
       });
-
-      // Scroll smoothly to top
       window.scrollTo({ top: 0, behavior: "smooth" });
-    }, 600);
+    } catch (err: any) {
+      const errMsg = err?.data?.message || err?.message || "Failed to place order. Please try again.";
+      toast.error(errMsg);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // If order has been placed, show the Confirmation Screen

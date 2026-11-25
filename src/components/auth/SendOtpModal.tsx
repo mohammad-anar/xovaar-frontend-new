@@ -20,12 +20,14 @@ export default function SendOtpModal({
   onBackToLogin,
 }: SendOtpModalProps) {
   const [identifier, setIdentifier] = useState("");
+  const [adminNotice, setAdminNotice] = useState<string | null>(null);
   const [sendOtp, { isLoading }] = useSendOtpMutation();
 
   if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setAdminNotice(null);
     const cleanId = identifier.trim();
 
     if (!cleanId) {
@@ -43,6 +45,9 @@ export default function SendOtpModal({
     } catch (err: any) {
       const errorMsg =
         err?.data?.message || err?.message || "Failed to send OTP code. Please try again.";
+      if (errorMsg.toLowerCase().includes("contact with admin")) {
+        setAdminNotice("Please contact with admin");
+      }
       toast.error(errorMsg);
     }
   };
@@ -90,6 +95,15 @@ export default function SendOtpModal({
 
         {/* OTP Request Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
+          {adminNotice && (
+            <div className="bg-amber-50 border border-amber-300 p-3 text-xs text-amber-900 flex items-start gap-2">
+              <AlertCircle size={16} className="text-amber-700 shrink-0 mt-0.5" />
+              <div>
+                <p className="font-bold uppercase tracking-wider text-[11px]">Notice</p>
+                <p className="mt-0.5">{adminNotice}</p>
+              </div>
+            </div>
+          )}
           <div>
             <label className="block text-[11px] font-bold uppercase tracking-wider text-neutral-800 mb-1.5">
               Email or Mobile Phone Number *

@@ -28,6 +28,7 @@ import {
   Target,
   ShoppingBag,
 } from "lucide-react";
+import { useGetSalesAnalyticsQuery } from "@/redux/service/analytics/analyticsApi";
 import { toast } from "sonner";
 
 const MONTHLY_REVENUE = [
@@ -58,6 +59,31 @@ const DELIVERY_SHARE = [
 export default function AdminAnalyticsPage() {
   const [mounted, setMounted] = useState(false);
   const [timeframe, setTimeframe] = useState<"year" | "month">("year");
+  const { data: apiAnalytics } = useGetSalesAnalyticsQuery();
+
+  const analytics = apiAnalytics?.data;
+  const revenueData =
+    analytics?.revenueChartData && analytics.revenueChartData.some((d) => d.revenue > 0)
+      ? analytics.revenueChartData.map((d) => ({
+          ...d,
+          target: Math.round(d.revenue * 0.9),
+        }))
+      : MONTHLY_REVENUE;
+
+  const deliveryData = analytics?.deliveryBreakdown
+    ? [
+        {
+          name: "Inside Dhaka (৳70)",
+          orders: analytics.deliveryBreakdown.insideDhaka,
+          revenue: analytics.deliveryBreakdown.insideDhaka * 70,
+        },
+        {
+          name: "Outside Dhaka (৳130)",
+          orders: analytics.deliveryBreakdown.outsideDhaka,
+          revenue: analytics.deliveryBreakdown.outsideDhaka * 130,
+        },
+      ]
+    : DELIVERY_SHARE;
 
   useEffect(() => {
     setMounted(true);
@@ -165,7 +191,7 @@ export default function AdminAnalyticsPage() {
           {mounted ? (
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
-                data={MONTHLY_REVENUE}
+                data={revenueData}
                 margin={{ top: 10, right: 10, left: -10, bottom: 0 }}
               >
                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f1f1" />
@@ -264,30 +290,34 @@ export default function AdminAnalyticsPage() {
             </p>
 
             <div className="space-y-5 mt-6">
-              {DELIVERY_SHARE.map((del, i) => (
-                <div key={i} className="space-y-2">
-                  <div className="flex justify-between text-xs">
-                    <span className="font-bold text-neutral-800">{del.name}</span>
-                    <span className="font-bold text-neutral-900">
-                      {del.orders} orders ({Math.round((del.orders / (198 + 86)) * 100)}%)
-                    </span>
+              {deliveryData.map((del, i) => {
+                const totalDeliveryOrders = deliveryData.reduce((s, d) => s + d.orders, 0) || 1;
+                const percentage = Math.round((del.orders / totalDeliveryOrders) * 100);
+                return (
+                  <div key={i} className="space-y-2">
+                    <div className="flex justify-between text-xs">
+                      <span className="font-bold text-neutral-800">{del.name}</span>
+                      <span className="font-bold text-neutral-900">
+                        {del.orders} orders ({percentage}%)
+                      </span>
+                    </div>
+                    <div className="w-full h-3 bg-neutral-100 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full ${i === 0 ? "bg-[#166534]" : "bg-[#111827]"}`}
+                        style={{
+                          width: `${percentage}%`,
+                        }}
+                      />
+                    </div>
+                    <div className="text-[11px] text-neutral-500 flex justify-between">
+                      <span>Generated Revenue</span>
+                      <span className="font-semibold text-neutral-800">
+                        ৳ {del.revenue.toLocaleString()}
+                      </span>
+                    </div>
                   </div>
-                  <div className="w-full h-3 bg-neutral-100 rounded-full overflow-hidden">
-                    <div
-                      className={`h-full ${i === 0 ? "bg-[#166534]" : "bg-[#111827]"}`}
-                      style={{
-                        width: `${Math.round((del.orders / (198 + 86)) * 100)}%`,
-                      }}
-                    />
-                  </div>
-                  <div className="text-[11px] text-neutral-500 flex justify-between">
-                    <span>Generated Revenue</span>
-                    <span className="font-semibold text-neutral-800">
-                      ৳ {del.revenue.toLocaleString()}
-                    </span>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 

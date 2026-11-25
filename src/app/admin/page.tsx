@@ -32,7 +32,11 @@ import {
   Cell,
 } from "recharts";
 import { AdminStorage, AdminOrder } from "@/services/adminStore";
-import { ProductItem } from "@/redux/service/product/productApi";
+import {
+  useGetProductsQuery,
+  ProductItem,
+} from "@/redux/service/product/productApi";
+import { useGetDashboardOverviewQuery } from "@/redux/service/analytics/analyticsApi";
 import { MetricGridSkeleton } from "@/components/skeleton/MetricCardSkeleton";
 import TableSkeleton from "@/components/skeleton/TableSkeleton";
 
@@ -56,18 +60,20 @@ const STATUS_DATA = [
 
 export default function AdminOverviewPage() {
   const [mounted, setMounted] = useState(false);
-  const [orders, setOrders] = useState<AdminOrder[]>([]);
-  const [products, setProducts] = useState<ProductItem[]>([]);
+  const { data: overviewResponse } = useGetDashboardOverviewQuery();
+  const { data: productsResponse } = useGetProductsQuery();
+  const overview = overviewResponse?.data;
+  const products: ProductItem[] = productsResponse?.data || [];
 
   useEffect(() => {
     setMounted(true);
-    setOrders(AdminStorage.getOrders());
-    setProducts(AdminStorage.getProducts());
   }, []);
 
-  const totalRevenue = orders.reduce((sum, o) => sum + o.total, 0) + 95400; // includes historical base
-  const totalOrdersCount = orders.length + 84;
-  const activeProductsCount = products.length;
+  const totalRevenue = overview?.totalRevenue ?? 0;
+  const totalOrdersCount = overview?.totalOrders ?? 0;
+  const pendingOrdersCount = overview?.pendingOrders ?? 0;
+  const lowStockCount = overview?.lowStockCount ?? 0;
+  const recentOrders = overview?.recentOrders ?? [];
 
   const kpis = [
     {
@@ -76,31 +82,31 @@ export default function AdminOverviewPage() {
       change: "+18.4%",
       isPositive: true,
       icon: DollarSign,
-      sub: "vs previous 30 days",
+      sub: "Total non-canceled sales",
     },
     {
       title: "Total Orders",
       value: totalOrdersCount.toString(),
-      change: "+12.1%",
+      change: `${pendingOrdersCount} pending`,
       isPositive: true,
       icon: ShoppingBag,
-      sub: "8 awaiting dispatch",
+      sub: `${pendingOrdersCount} awaiting dispatch`,
     },
     {
-      title: "Active Products",
-      value: activeProductsCount.toString(),
-      change: "+3 this week",
-      isPositive: true,
+      title: "Low Stock Alert",
+      value: lowStockCount.toString(),
+      change: lowStockCount > 0 ? "Action required" : "Healthy",
+      isPositive: lowStockCount === 0,
       icon: Package,
-      sub: "Across 3 Men categories",
+      sub: "Items under 5 units",
     },
     {
-      title: "Registered Users",
-      value: "1,280",
-      change: "+24 today",
+      title: "System Status",
+      value: "Live",
+      change: "Connected",
       isPositive: true,
       icon: Users,
-      sub: "98% customer accounts",
+      sub: "Production API synced",
     },
   ];
 
@@ -359,12 +365,12 @@ export default function AdminOverviewPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-neutral-100">
-                {orders.slice(0, 4).map((order) => (
+                {recentOrders.slice(0, 5).map((order: any) => (
                   <tr key={order.id} className="hover:bg-neutral-50/70 transition-colors">
                     <td className="py-3 px-3">
                       <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="font-extrabold text-neutral-900">{order.id}</span>
-                        {order.manual && (
+                        <span className="font-extrabold text-neutral-900">{order.orderNumber || order.id}</span>
+                        {(order.isManual || order.manual) && (
                           <span className="px-1 py-0.2 rounded text-[8px] font-black uppercase tracking-wider bg-purple-100 text-purple-900 border border-purple-300">
                             MANUAL
                           </span>

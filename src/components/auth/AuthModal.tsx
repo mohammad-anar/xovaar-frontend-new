@@ -95,6 +95,7 @@ export default function AuthModal({
               email: user.email || undefined,
               phone: user.phone || undefined,
               role: user.role.toLowerCase(),
+              isDefaultPassword: user.isDefaultPassword,
             },
             accessToken,
             refreshToken,
@@ -116,126 +117,9 @@ export default function AuthModal({
         return;
       }
     } catch (apiErr: any) {
-      // Check if error is an account status or validation block from the backend
-      const serverMessage = apiErr?.data?.message;
-      if (
-        serverMessage &&
-        (serverMessage.includes("blocked") ||
-          serverMessage.includes("suspended") ||
-          serverMessage.includes("deleted") ||
-          serverMessage.includes("hold") ||
-          serverMessage.includes("inactive") ||
-          serverMessage.includes("password"))
-      ) {
-        setIsLoading(false);
-        toast.error(serverMessage);
-        return;
-      }
-
-      // 2. Fallback to Local Storage / Demo Auth (in case backend is disconnected or offline)
-      console.warn("API login failed, checking local credentials fallback:", apiErr);
-      const adminStoreUsers = AdminStorage.getUsers();
-      const matchedUser = adminStoreUsers.find(
-        (u) =>
-          (u.email && u.email.toLowerCase() === identifier.toLowerCase()) ||
-          (u.phone && u.phone === identifier)
-      );
-
-      if (matchedUser) {
-        if (matchedUser.isDeleted) {
-          setIsLoading(false);
-          toast.error("This account has been deleted. Please contact support.");
-          return;
-        }
-        if (matchedUser.status === "banned") {
-          setIsLoading(false);
-          toast.error("Your account has been banned. Access denied.");
-          return;
-        }
-        if (matchedUser.status === "suspended") {
-          setIsLoading(false);
-          toast.error("Your account is currently suspended. Please contact support.");
-          return;
-        }
-        if (matchedUser.status === "hold") {
-          setIsLoading(false);
-          toast.error("Your account is currently on hold. Please contact support.");
-          return;
-        }
-        if (matchedUser.status === "inactive") {
-          setIsLoading(false);
-          toast.error("Your account is inactive. Please contact support.");
-          return;
-        }
-      }
-
-      const isAdmin =
-        matchedUser?.role === "admin" ||
-        identifier.toLowerCase() === "admin@xovaar.com" ||
-        identifier === "0162039613" ||
-        (password === "admin123" && identifier.toLowerCase().includes("admin"));
-
-      if (isAdmin) {
-        const adminUser = {
-          userId: matchedUser?.id || "admin-1",
-          name: matchedUser?.name || "Super Admin",
-          email: matchedUser?.email || "admin@xovaar.com",
-          phone: matchedUser?.phone || "0162039613",
-          role: "admin",
-        };
-        dispatch(
-          setUser({
-            user: adminUser,
-            accessToken: "mock-admin-token",
-            refreshToken: "mock-admin-refresh",
-          })
-        );
-        saveAuthCookies("mock-admin-token", "mock-admin-refresh");
-        AdminStorage.setAdminLoggedIn(true);
-        toast.success("Welcome back, Super Admin!", {
-          description: "Access granted to Xovaar Admin Console.",
-        });
-        setIsLoading(false);
-        onClose();
-        if (typeof window !== "undefined" && window.location.search.includes("auth=admin")) {
-          router.push("/admin");
-        }
-        return;
-      }
-
-      // Customer fallback
-      const savedUsers: any[] = JSON.parse(
-        localStorage.getItem("app_registered_users") || "[]"
-      );
-      const matched = savedUsers.find(
-        (u) =>
-          (u.email && u.email.toLowerCase() === identifier.toLowerCase()) ||
-          (u.phone && u.phone === identifier)
-      );
-
-      const customerName = matchedUser?.name || matched?.name || (identifier.includes("@") ? identifier.split("@")[0] : `Customer ${identifier.slice(-4)}`);
-      const loggedUser = {
-        userId: matchedUser?.id || matched?.id || `user-${Date.now().toString().slice(-4)}`,
-        name: customerName,
-        email: matchedUser?.email || matched?.email || (identifier.includes("@") ? identifier : ""),
-        phone: matchedUser?.phone || matched?.phone || (!identifier.includes("@") ? identifier : ""),
-        role: "customer",
-      };
-
-      dispatch(
-        setUser({
-          user: loggedUser,
-          accessToken: "mock-customer-token",
-          refreshToken: "mock-customer-refresh",
-        })
-      );
-      saveAuthCookies("mock-customer-token", "mock-customer-refresh");
-
-      toast.success(`Welcome back, ${customerName}!`, {
-        description: "Successfully signed in to your Xovaar account.",
-      });
       setIsLoading(false);
-      onClose();
+      const serverMessage = apiErr?.data?.message || apiErr?.message || "Invalid credentials. Please verify your details.";
+      toast.error(serverMessage);
     }
   };
 
@@ -281,6 +165,7 @@ export default function AuthModal({
               email: user.email || undefined,
               phone: user.phone || undefined,
               role: user.role.toLowerCase(),
+              isDefaultPassword: user.isDefaultPassword,
             },
             accessToken,
             refreshToken,
@@ -295,80 +180,9 @@ export default function AuthModal({
         return;
       }
     } catch (apiErr: any) {
-      const serverMessage = apiErr?.data?.message;
-      if (serverMessage) {
-        setIsLoading(false);
-        toast.error(serverMessage);
-        return;
-      }
-
-      // 2. Fallback to local storage persistence
-      const finalName = name || (email ? email.split("@")[0] : `User ${phone.slice(-4)}`);
-      const newUser = {
-        id: `user-${Date.now().toString().slice(-5)}`,
-        name: finalName,
-        email: email || undefined,
-        phone: phone || undefined,
-        role: "customer",
-        joinedDate: new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }),
-      };
-
-      try {
-        const existing: any[] = JSON.parse(localStorage.getItem("app_registered_users") || "[]");
-        existing.push({ ...newUser, password });
-        localStorage.setItem("app_registered_users", JSON.stringify(existing));
-
-        const adminUsers = AdminStorage.getUsers();
-        AdminStorage.saveUsers([
-          {
-            id: newUser.id,
-            name: newUser.name,
-            email: newUser.email || "",
-            phone: newUser.phone || "",
-            role: "customer",
-            status: "active",
-            isDeleted: false,
-            joinedDate: newUser.joinedDate,
-            totalOrders: 0,
-            totalSpent: 0,
-          },
-          ...adminUsers,
-        ]);
-      } catch {
-        // ignore
-      }
-
-      dispatch(
-        setUser({
-          user: {
-            userId: newUser.id,
-            name: newUser.name,
-            email: newUser.email,
-            phone: newUser.phone,
-            role: "customer",
-          },
-          accessToken: "mock-jwt-customer-new",
-          refreshToken: "mock-jwt-customer-new-refresh",
-        })
-      );
-      saveAuthCookies("mock-jwt-customer-new", "mock-jwt-customer-new-refresh");
-
-      toast.success(`Welcome to Xovaar, ${finalName}!`, {
-        description: "Your account has been created successfully.",
-      });
       setIsLoading(false);
-      onClose();
-    }
-  };
-
-  // Quick demo login helpers
-  const handleQuickLogin = (role: "admin" | "customer") => {
-    if (role === "admin") {
-      setLoginIdentifier("admin@xovaar.com");
-      setLoginPassword("admin123");
-    } else {
-      setLoginIdentifier("sadia.rahman@gmail.com");
-      setLoginPassword("password123");
+      const serverMessage = apiErr?.data?.message || apiErr?.message || "Failed to create account. Please check your information.";
+      toast.error(serverMessage);
     }
   };
 
@@ -492,28 +306,6 @@ export default function AuthModal({
                 </>
               )}
             </button>
-
-            {/* Quick Demo Credentials Fill (Optional Helper) */}
-            <div className="pt-2 flex items-center justify-between text-[11px] text-neutral-500 border-t border-neutral-100">
-              <span className="font-semibold uppercase tracking-wider text-[10px]">Quick Demo:</span>
-              <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => handleQuickLogin("admin")}
-                  className="font-bold text-[#166534] hover:underline cursor-pointer"
-                >
-                  Demo Admin
-                </button>
-                <span className="text-neutral-300">•</span>
-                <button
-                  type="button"
-                  onClick={() => handleQuickLogin("customer")}
-                  className="font-bold text-neutral-700 hover:underline cursor-pointer"
-                >
-                  Demo Customer
-                </button>
-              </div>
-            </div>
           </form>
         )}
 

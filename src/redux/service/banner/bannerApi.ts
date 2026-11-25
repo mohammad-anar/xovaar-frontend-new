@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { baseApi } from "@/redux/api/baseApi";
 
 export interface HeroBannerSlide {
@@ -6,13 +7,17 @@ export interface HeroBannerSlide {
   titleHighlight: string;
   subtitle: string;
   imageUrl: string;
-  productId: string;
-  productTitle: string;
-  productPrice: number;
-  productImage: string;
+  productId?: string | null;
+  productTitle?: string | null;
+  productPrice?: number | null;
+  productImage?: string | null;
   ctaText?: string;
   ctaLink?: string;
   align?: "left" | "right";
+  isActive?: boolean;
+  order?: number;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface NavCategory {
@@ -36,6 +41,7 @@ export const DEFAULT_HERO_SLIDES: HeroBannerSlide[] = [
     ctaText: "Shop Now",
     ctaLink: "/product/prod-6",
     align: "right",
+    isActive: true,
   },
   {
     id: "slide-2",
@@ -50,6 +56,7 @@ export const DEFAULT_HERO_SLIDES: HeroBannerSlide[] = [
     ctaText: "Shop Now",
     ctaLink: "/product/prod-2",
     align: "left",
+    isActive: true,
   },
   {
     id: "slide-3",
@@ -64,6 +71,7 @@ export const DEFAULT_HERO_SLIDES: HeroBannerSlide[] = [
     ctaText: "Shop Now",
     ctaLink: "/product/prod-8",
     align: "right",
+    isActive: true,
   },
   {
     id: "slide-4",
@@ -78,6 +86,7 @@ export const DEFAULT_HERO_SLIDES: HeroBannerSlide[] = [
     ctaText: "Shop Now",
     ctaLink: "/product/prod-1",
     align: "left",
+    isActive: true,
   },
   {
     id: "slide-5",
@@ -92,6 +101,7 @@ export const DEFAULT_HERO_SLIDES: HeroBannerSlide[] = [
     ctaText: "Shop Now",
     ctaLink: "/product/prod-7",
     align: "left",
+    isActive: true,
   },
   {
     id: "slide-6",
@@ -106,21 +116,84 @@ export const DEFAULT_HERO_SLIDES: HeroBannerSlide[] = [
     ctaText: "Shop Now",
     ctaLink: "/product/prod-15",
     align: "right",
+    isActive: true,
   },
 ];
 
 export const bannerApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
+    getBanners: builder.query<{ success: boolean; data: HeroBannerSlide[] }, void>({
+      query: () => ({
+        url: "/banners",
+        method: "GET",
+      }),
+      providesTags: ["banners"],
+    }),
+
+    getAllBannersAdmin: builder.query<{ success: boolean; data: HeroBannerSlide[] }, void>({
+      query: () => ({
+        url: "/banners/admin/all",
+        method: "GET",
+      }),
+      providesTags: ["banners"],
+    }),
+
+    getBannerById: builder.query<{ success: boolean; data: HeroBannerSlide }, string>({
+      query: (id) => ({
+        url: `/banners/${id}`,
+        method: "GET",
+      }),
+      providesTags: (_res, _err, id) => [{ type: "banners", id }],
+    }),
+
+    createBanner: builder.mutation<{ success: boolean; data: HeroBannerSlide }, Partial<HeroBannerSlide>>({
+      query: (body) => ({
+        url: "/banners",
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["banners"],
+    }),
+
+    updateBanner: builder.mutation<
+      { success: boolean; data: HeroBannerSlide },
+      { id: string } & Partial<HeroBannerSlide>
+    >({
+      query: ({ id, ...body }) => ({
+        url: `/banners/${id}`,
+        method: "PATCH",
+        body,
+      }),
+      invalidatesTags: ["banners"],
+    }),
+
+    deleteBanner: builder.mutation<{ success: boolean; data: HeroBannerSlide }, string>({
+      query: (id) => ({
+        url: `/banners/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["banners"],
+    }),
+
+    uploadBannerImage: builder.mutation<{ success: boolean; data: { imageUrl: string } }, FormData>({
+      query: (body) => ({
+        url: "/banners/upload-image",
+        method: "POST",
+        body,
+      }),
+    }),
+
+    // Legacy aliases
     getHeroSlides: builder.query<{ success: boolean; data: HeroBannerSlide[] }, void>({
       query: () => ({
-        url: "/banners/hero-slides",
+        url: "/banners",
         method: "GET",
       }),
       providesTags: ["banners"],
     }),
     getNavCategories: builder.query<{ success: boolean; data: NavCategory[] }, void>({
       query: () => ({
-        url: "/categories/nav",
+        url: "/categories",
         method: "GET",
       }),
       providesTags: ["categories"],
@@ -128,4 +201,16 @@ export const bannerApi = baseApi.injectEndpoints({
   }),
 });
 
-export const { useGetHeroSlidesQuery, useGetNavCategoriesQuery } = bannerApi;
+export const {
+  useGetBannersQuery,
+  useGetAllBannersAdminQuery,
+  useGetBannerByIdQuery,
+  useCreateBannerMutation,
+  useUpdateBannerMutation,
+  useDeleteBannerMutation,
+  useUploadBannerImageMutation,
+  useGetHeroSlidesQuery,
+  useGetNavCategoriesQuery,
+} = bannerApi;
+
+export default bannerApi;

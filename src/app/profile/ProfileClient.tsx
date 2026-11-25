@@ -24,6 +24,13 @@ import {
 } from "lucide-react";
 import OrderPrintInvoice from "@/components/invoice/OrderPrintInvoice";
 import ProfileSkeleton from "@/components/skeleton/ProfileSkeleton";
+import { useGetMyOrdersQuery } from "@/redux/service/order/orderApi";
+import { useGetMeQuery } from "@/redux/service/user/userApi";
+import {
+  useSendOtpMutation,
+  useChangePasswordMutation,
+  useResetPasswordMutation,
+} from "@/redux/service/auth/authApi";
 import { toast } from "sonner";
 
 interface ProfileFormValues {
@@ -140,12 +147,24 @@ export default function ProfileClient() {
     "orders" | "details" | "addresses" | "security"
   >("orders");
 
-  const [orders, setOrders] = useState<UserOrder[]>(SAMPLE_ORDERS);
+  const { data: apiOrders } = useGetMyOrdersQuery();
+  const { data: meData } = useGetMeQuery();
+
+  const [orders, setOrders] = useState<UserOrder[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<UserOrder | null>(null);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
 
+  // Security & Password change states
+  const [sendOtpMutation, { isLoading: isSendingOtp }] = useSendOtpMutation();
+  const [resetPasswordMutation, { isLoading: isResettingPassword }] = useResetPasswordMutation();
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [otpCode, setOtpCode] = useState("");
+  const [otpSent, setOtpSent] = useState(false);
+
   // Hook must be called unconditionally before any early returns (Rules of Hooks)
-  const { register, handleSubmit } = useForm<ProfileFormValues>({
+  const { register, handleSubmit, reset } = useForm<ProfileFormValues>({
     defaultValues: {
       name: "Tanzid Mahmud",
       email: "tanzid.mahmud@example.com",
@@ -156,13 +175,58 @@ export default function ProfileClient() {
   });
 
   useEffect(() => {
+    if (meData?.data) {
+      reset({
+        name: meData.data.name || "Tanzid Mahmud",
+        email: meData.data.email || "tanzid.mahmud@example.com",
+        phone: meData.data.phone || "+880 1712-345678",
+        gender: "Male",
+        address: "House 42, Road 11, Banani, Dhaka-1213",
+      });
+    }
+  }, [meData, reset]);
+
+  useEffect(() => {
+    if (apiOrders?.data && apiOrders.data.length > 0) {
+      const mappedApiOrders: UserOrder[] = apiOrders.data.map((o) => ({
+        id: o.orderNumber || o.id,
+        date: new Date(o.createdAt).toLocaleDateString("en-BD", {
+          day: "numeric",
+          month: "short",
+          year: "numeric",
+        }),
+        status: o.status,
+        itemsCount: o.items.length,
+        subtotal: o.subtotal,
+        deliveryFee: o.deliveryFee,
+        total: o.total,
+        customerName: o.customerName,
+        customerPhone: o.phoneNumber,
+        deliveryAddress: o.deliveryAddress,
+        deliveryNote: o.deliveryNote || undefined,
+        paymentMethod: o.paymentMethod === "COD" ? "Cash On Delivery" : o.paymentMethod,
+        deliveryType: o.deliveryType as "inside" | "outside",
+        items: o.items.map((it) => ({
+          id: it.id,
+          title: it.title,
+          size: it.size,
+          quantity: it.quantity,
+          price: it.price,
+          imageUrl: it.imageUrl,
+        })),
+      }));
+      setOrders(mappedApiOrders);
+      setIsInitialLoading(false);
+      return;
+    }
+
     if (typeof window !== "undefined") {
       try {
         const stored = localStorage.getItem("user_orders");
         if (stored) {
           const parsed = JSON.parse(stored);
           if (Array.isArray(parsed) && parsed.length > 0) {
-            setOrders([...parsed, ...SAMPLE_ORDERS]);
+            setOrders(parsed);
           }
         }
       } catch {
@@ -173,7 +237,7 @@ export default function ProfileClient() {
     } else {
       setIsInitialLoading(false);
     }
-  }, []);
+  }, [apiOrders]);
 
   if (isInitialLoading) {
     return <ProfileSkeleton />;
@@ -558,50 +622,162 @@ export default function ProfileClient() {
                     Security & Password
                   </h2>
                   <p className="text-xs text-neutral-500 mt-0.5">
-                    Ensure your account is using a long, random password to stay
-                    secure.
+                    Ensure your account is protected with two-factor email verification.
                   </p>
                 </div>
 
-                <div className="space-y-4 max-w-md">
-                  <div className="space-y-1">
-                    <label className="text-xs font-semibold text-neutral-700">
-                      Current Password
-                    </label>
-                    <input
-                      type="password"
-                      placeholder="••••••••"
-                      className="w-full h-10 px-3 bg-neutral-50 border border-neutral-300 rounded text-xs focus:bg-white focus:outline-none"
-                    />
+                {!meData?.data?.email ? (
+                  <div className="bg-amber-50 border border-amber-300 p-4 text-xs text-amber-900 flex items-start gap-3">
+                    <AlertCircle size={20} className="text-amber-700 shrink-0 mt-0.5" />
+                    <div className="space-y-2">
+                      <p className="font-bold uppercase tracking-wider text-[11px]">
+                        Email Required for Password Change
+                      </p>
+                      <p className="leading-relaxed">
+                        Tumi tumar password change korte caile email add koro. Please add your email address first in your profile details so you can receive an OTP verification code and change your password.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab("details")}
+                        className="px-4 py-2 bg-neutral-900 text-white font-bold text-xs uppercase tracking-wider hover:bg-black transition-colors"
+                      >
+                        Add Email in Profile Details
+                      </button>
+                    </div>
                   </div>
-                  <div className="space-y-1">
-                    <label className="text-xs font-semibold text-neutral-700">
-                      New Password
-                    </label>
-                    <input
-                      type="password"
-                      placeholder="••••••••"
-                      className="w-full h-10 px-3 bg-neutral-50 border border-neutral-300 rounded text-xs focus:bg-white focus:outline-none"
-                    />
+                ) : (
+                  <div className="space-y-4 max-w-md">
+                    <div className="bg-neutral-50 border border-neutral-200 p-3 text-xs text-neutral-700">
+                      <p className="font-semibold text-neutral-900">Verification Target:</p>
+                      <p className="text-neutral-600 font-mono mt-0.5">{meData.data.email}</p>
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-xs font-semibold text-neutral-700">
+                        Current Password *
+                      </label>
+                      <input
+                        type="password"
+                        placeholder="••••••••"
+                        value={currentPassword}
+                        onChange={(e) => setCurrentPassword(e.target.value)}
+                        className="w-full h-10 px-3 bg-neutral-50 border border-neutral-300 rounded-none text-xs focus:bg-white focus:outline-none"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-xs font-semibold text-neutral-700">
+                        New Password * <span className="text-[10px] text-neutral-400 font-normal">(min 6 chars)</span>
+                      </label>
+                      <input
+                        type="password"
+                        placeholder="••••••••"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        className="w-full h-10 px-3 bg-neutral-50 border border-neutral-300 rounded-none text-xs focus:bg-white focus:outline-none"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-xs font-semibold text-neutral-700">
+                        Confirm New Password *
+                      </label>
+                      <input
+                        type="password"
+                        placeholder="••••••••"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        className="w-full h-10 px-3 bg-neutral-50 border border-neutral-300 rounded-none text-xs focus:bg-white focus:outline-none"
+                      />
+                    </div>
+
+                    {!otpSent ? (
+                      <button
+                        type="button"
+                        disabled={isSendingOtp}
+                        onClick={async () => {
+                          if (!currentPassword) {
+                            toast.error("Please enter your current password");
+                            return;
+                          }
+                          if (!newPassword || newPassword.length < 6) {
+                            toast.error("New password must be at least 6 characters");
+                            return;
+                          }
+                          if (newPassword !== confirmPassword) {
+                            toast.error("Passwords do not match");
+                            return;
+                          }
+
+                          try {
+                            await sendOtpMutation({ identifier: meData.data.email }).unwrap();
+                            setOtpSent(true);
+                            toast.success("Verification code sent to your email!");
+                          } catch (err: any) {
+                            toast.error(err?.data?.message || "Failed to send OTP code");
+                          }
+                        }}
+                        className="bg-neutral-900 hover:bg-black text-white text-xs font-bold uppercase tracking-wider px-5 py-2.5 rounded-none transition-colors disabled:opacity-50"
+                      >
+                        {isSendingOtp ? "Sending OTP..." : "Send Verification Code to Email"}
+                      </button>
+                    ) : (
+                      <div className="space-y-3 pt-2 border-t border-neutral-200">
+                        <div className="space-y-1">
+                          <label className="text-xs font-semibold text-neutral-900">
+                            Enter 6-Digit Email OTP Code *
+                          </label>
+                          <input
+                            type="text"
+                            maxLength={6}
+                            placeholder="123456"
+                            value={otpCode}
+                            onChange={(e) => setOtpCode(e.target.value)}
+                            className="w-full h-10 px-3 bg-neutral-50 border border-neutral-400 font-mono tracking-widest text-center text-sm rounded-none focus:bg-white focus:outline-none"
+                          />
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            disabled={isResettingPassword}
+                            onClick={async () => {
+                              if (!otpCode || otpCode.trim().length !== 6) {
+                                toast.error("Please enter the 6-digit OTP code");
+                                return;
+                              }
+                              try {
+                                await resetPasswordMutation({
+                                  identifier: meData.data.email,
+                                  otp: otpCode.trim(),
+                                  newPassword: newPassword.trim(),
+                                }).unwrap();
+                                toast.success("Password changed successfully!");
+                                setCurrentPassword("");
+                                setNewPassword("");
+                                setConfirmPassword("");
+                                setOtpCode("");
+                                setOtpSent(false);
+                              } catch (err: any) {
+                                toast.error(err?.data?.message || "Invalid OTP code");
+                              }
+                            }}
+                            className="bg-[#16A34A] hover:bg-[#15803d] text-white text-xs font-bold uppercase tracking-wider px-5 py-2.5 rounded-none transition-colors disabled:opacity-50"
+                          >
+                            {isResettingPassword ? "Verifying..." : "Verify & Change Password"}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setOtpSent(false)}
+                            className="text-xs text-neutral-500 hover:text-black underline px-2 py-2"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                  <div className="space-y-1">
-                    <label className="text-xs font-semibold text-neutral-700">
-                      Confirm New Password
-                    </label>
-                    <input
-                      type="password"
-                      placeholder="••••••••"
-                      className="w-full h-10 px-3 bg-neutral-50 border border-neutral-300 rounded text-xs focus:bg-white focus:outline-none"
-                    />
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => toast.success("Password updated successfully!")}
-                    className="bg-neutral-900 hover:bg-black text-white text-xs font-bold uppercase tracking-wider px-5 py-2.5 rounded transition-colors"
-                  >
-                    Update Password
-                  </button>
-                </div>
+                )}
               </div>
             )}
           </div>

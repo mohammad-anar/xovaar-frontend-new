@@ -17,48 +17,56 @@ import {
   Package,
   Printer,
 } from "lucide-react";
-import { AdminStorage, AdminOrder } from "@/services/adminStore";
+import {
+  useGetOrdersQuery,
+  useUpdateOrderStatusMutation,
+  OrderData,
+  OrderStatus,
+} from "@/redux/service/order/orderApi";
 import OrderPrintInvoice from "@/components/invoice/OrderPrintInvoice";
 import TableSkeleton from "@/components/skeleton/TableSkeleton";
 import { toast } from "sonner";
 
 export default function AdminOrdersPage() {
-  const [orders, setOrders] = useState<AdminOrder[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
 
+  const { data: apiOrders, isLoading, refetch } = useGetOrdersQuery({
+    search: searchTerm || undefined,
+    status: statusFilter !== "All" ? statusFilter : undefined,
+  });
+  const [updateStatus] = useUpdateOrderStatusMutation();
+
+  const orders: OrderData[] = apiOrders?.data || [];
+
   // Selected order for full view modal
-  const [selectedOrder, setSelectedOrder] = useState<AdminOrder | null>(null);
+  const [selectedOrder, setSelectedOrder] = useState<OrderData | null>(null);
   // Order selected specifically for 1-page printable invoice
-  const [invoiceOrder, setInvoiceOrder] = useState<AdminOrder | null>(null);
+  const [invoiceOrder, setInvoiceOrder] = useState<OrderData | null>(null);
 
-  useEffect(() => {
-    setOrders(AdminStorage.getOrders());
-    setIsLoading(false);
-  }, []);
-
-  const handleStatusChange = (orderId: string, newStatus: AdminOrder["status"]) => {
-    const updated = AdminStorage.updateOrderStatus(orderId, newStatus);
-    setOrders(updated);
-    toast.success(`Order #${orderId} status changed to ${newStatus}`);
-
-    // If modal is open for this order, update selectedOrder as well
-    if (selectedOrder && selectedOrder.id === orderId) {
-      setSelectedOrder({ ...selectedOrder, status: newStatus });
+  const handleStatusChange = async (orderId: string, newStatus: OrderStatus) => {
+    try {
+      await updateStatus({ id: orderId, status: newStatus }).unwrap();
+      toast.success(`Order status changed to ${newStatus}`);
+      refetch();
+      if (selectedOrder && selectedOrder.id === orderId) {
+        setSelectedOrder({ ...selectedOrder, status: newStatus });
+      }
+    } catch (err: any) {
+      toast.error(err?.data?.message || "Failed to update status");
     }
   };
 
   const filteredOrders = orders.filter((o) => {
     const matchSearch =
-      o.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (o.orderNumber || o.id).toLowerCase().includes(searchTerm.toLowerCase()) ||
       o.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       o.phoneNumber.toLowerCase().includes(searchTerm.toLowerCase());
     const matchStatus = statusFilter === "All" || o.status === statusFilter;
     return matchSearch && matchStatus;
   });
 
-  const getStatusBadge = (status: AdminOrder["status"]) => {
+  const getStatusBadge = (status: OrderStatus) => {
     switch (status) {
       case "PENDING":
         return "bg-amber-50 text-amber-700 border-amber-200";
@@ -193,16 +201,16 @@ export default function AdminOrdersPage() {
                     <td className="py-3.5 px-4">
                       <div className="flex items-center gap-1.5 flex-wrap">
                         <span className="font-extrabold text-neutral-900">
-                          {order.id}
+                          {order.orderNumber || order.id}
                         </span>
-                        {order.manual && (
+                        {order.isManual && (
                           <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-purple-100 text-purple-900 border border-purple-300 shadow-2xs">
                             MANUAL
                           </span>
                         )}
                       </div>
                       <div className="text-[10px] text-neutral-400 mt-0.5">
-                        {order.date}
+                        {new Date(order.createdAt).toLocaleDateString()}
                       </div>
                     </td>
 
@@ -303,10 +311,10 @@ export default function AdminOrdersPage() {
                   Order Details
                 </span>
                 <h3 className="text-xl font-extrabold uppercase tracking-tight text-neutral-900">
-                  {selectedOrder.id}
+                  {selectedOrder.orderNumber || selectedOrder.id}
                 </h3>
                 <p className="text-xs text-neutral-400 mt-0.5">
-                  Placed on {selectedOrder.date} &bull; Payment via {selectedOrder.paymentMethod}
+                  Placed on {new Date(selectedOrder.createdAt).toLocaleDateString()} &bull; Payment via {selectedOrder.paymentMethod}
                 </p>
               </div>
 
@@ -360,23 +368,15 @@ export default function AdminOrdersPage() {
                 </div>
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-neutral-600">Manual Order:</span>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const updated = AdminStorage.toggleOrderManual(selectedOrder.id);
-                      setOrders(updated);
-                      const found = updated.find((o) => o.id === selectedOrder.id);
-                      if (found) setSelectedOrder(found);
-                      toast.success(`Order #${selectedOrder.id} manual status updated`);
-                    }}
-                    className={`px-2 py-0.5 text-[10px] font-black uppercase rounded border cursor-pointer transition-colors ${
-                      selectedOrder.manual
+                  <span
+                    className={`px-2 py-0.5 text-[10px] font-black uppercase rounded border ${
+                      selectedOrder.isManual
                         ? "bg-purple-600 text-white border-purple-700 shadow-2xs"
-                        : "bg-neutral-100 text-neutral-600 border-neutral-300 hover:bg-neutral-200"
+                        : "bg-neutral-100 text-neutral-600 border-neutral-300"
                     }`}
                   >
-                    {selectedOrder.manual ? "✓ YES (MANUAL ORDER)" : "NO (REGULAR ORDER)"}
-                  </button>
+                    {selectedOrder.isManual ? "✓ YES (MANUAL ORDER)" : "NO (REGULAR ORDER)"}
+                  </span>
                 </div>
                 <p className="text-[11px] text-neutral-500">
                   Delivery route: {selectedOrder.deliveryType === "inside" ? "Dhakar Vitore" : "Dhakar Bahire"}
@@ -508,7 +508,7 @@ export default function AdminOrdersPage() {
             <div className="p-2 sm:p-4 bg-neutral-100/60 overflow-x-auto">
               <OrderPrintInvoice
                 order={{
-                  id: invoiceOrder.id,
+                  id: invoiceOrder.orderNumber || invoiceOrder.id,
                   customerName: invoiceOrder.customerName,
                   phoneNumber: invoiceOrder.phoneNumber,
                   deliveryAddress: invoiceOrder.deliveryAddress,
@@ -517,8 +517,8 @@ export default function AdminOrdersPage() {
                   subtotal: invoiceOrder.subtotal,
                   total: invoiceOrder.total,
                   status: invoiceOrder.status,
-                  manual: invoiceOrder.manual,
-                  date: invoiceOrder.date,
+                  manual: invoiceOrder.isManual,
+                  date: invoiceOrder.createdAt,
                   paymentMethod: invoiceOrder.paymentMethod,
                   items: invoiceOrder.items,
                 }}

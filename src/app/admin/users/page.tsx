@@ -16,89 +16,93 @@ import {
   AlertTriangle,
   CheckCircle2,
 } from "lucide-react";
-import { AdminStorage, AdminUser, UserStatus } from "@/services/adminStore";
+import {
+  useGetAllUsersQuery,
+  useUpdateUserStatusMutation,
+  useDeleteUserMutation,
+  useRestoreUserMutation,
+} from "@/redux/service/user/userApi";
 import TableSkeleton from "@/components/skeleton/TableSkeleton";
 import { toast } from "sonner";
 
-export default function AdminUsersPage() {
-  const [users, setUsers] = useState<AdminUser[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [roleFilter, setRoleFilter] = useState<"all" | "customer" | "admin">("all");
-  const [statusFilter, setStatusFilter] = useState<"all" | UserStatus | "deleted">("all");
+export interface AdminUser {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  role: "ADMIN" | "CUSTOMER" | string;
+  status: "ACTIVE" | "INACTIVE" | "SUSPENDED" | "HOLD" | "BLOCKED" | string;
+  isDeleted: boolean;
+  totalOrders: number;
+  totalSpent: number;
+  createdAt: string;
+}
 
-  // Add User Modal
+export default function AdminUsersPage() {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [roleFilter, setRoleFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+
+  // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [role, setRole] = useState<"admin" | "customer">("customer");
-  const [initialStatus, setInitialStatus] = useState<UserStatus>("active");
+  const [role, setRole] = useState("customer");
+  const [initialStatus, setInitialStatus] = useState("ACTIVE");
 
-  useEffect(() => {
-    setUsers(AdminStorage.getUsers());
-    setIsLoading(false);
-  }, []);
+  const { data: apiUsersResponse, isLoading, refetch } = useGetAllUsersQuery({
+    searchTerm: searchTerm || undefined,
+  });
+  const [updateUserStatus] = useUpdateUserStatusMutation();
+  const [deleteUser] = useDeleteUserMutation();
+  const [restoreUser] = useRestoreUserMutation();
 
-  const handleUpdateStatus = (u: AdminUser, newStatus: UserStatus) => {
-    const updated = AdminStorage.updateUserStatus(u.id, newStatus);
-    setUsers(updated);
-    toast.success(`User "${u.name}" status updated to ${newStatus}`);
+  const users: AdminUser[] = (apiUsersResponse?.data || []).map((u: any) => ({
+    id: u.id,
+    name: u.name,
+    email: u.email || "",
+    phone: u.phone || "",
+    role: u.role,
+    status: u.status,
+    isDeleted: u.isDeleted,
+    totalOrders: u.totalOrders || 0,
+    totalSpent: u.totalSpent || 0,
+    createdAt: u.createdAt,
+  }));
+
+  const handleUpdateStatus = async (u: AdminUser, newStatus: string) => {
+    try {
+      await updateUserStatus({ id: u.id, status: newStatus.toUpperCase() }).unwrap();
+      toast.success(`User "${u.name}" status updated to ${newStatus}`);
+      refetch();
+    } catch (err: any) {
+      toast.error(err?.data?.message || "Failed to update status");
+    }
   };
 
-  const handleToggleDeleted = (u: AdminUser) => {
-    const updated = AdminStorage.toggleUserDeleted(u.id);
-    setUsers(updated);
-    if (!u.isDeleted) {
-      toast.warning(`User "${u.name}" moved to deleted (soft delete).`);
-    } else {
-      toast.success(`User "${u.name}" restored successfully.`);
+  const handleToggleDeleted = async (u: AdminUser) => {
+    try {
+      if (!u.isDeleted) {
+        await deleteUser(u.id).unwrap();
+        toast.warning(`User "${u.name}" moved to deleted (soft delete).`);
+      } else {
+        await restoreUser(u.id).unwrap();
+        toast.success(`User "${u.name}" restored successfully.`);
+      }
+      refetch();
+    } catch (err: any) {
+      toast.error(err?.data?.message || "Failed to update user delete status");
     }
   };
 
   const handleToggleRole = (u: AdminUser) => {
-    const newRole = u.role === "admin" ? "customer" : "admin";
-    const updated = users.map((user) =>
-      user.id === u.id ? { ...user, role: newRole as "admin" | "customer" } : user
-    );
-    AdminStorage.saveUsers(updated);
-    setUsers(updated);
-    toast.success(`${u.name} role changed to ${newRole}`);
+    toast.info("Role editing is restricted to database admin");
   };
 
   const handleAddUser = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) {
-      toast.error("Please provide the user's name");
-      return;
-    }
-    if (!email.trim() && !phone.trim()) {
-      toast.error("Please provide at least an email address or phone number");
-      return;
-    }
-
-    const newUser: AdminUser = {
-      id: `usr-${Date.now().toString().slice(-4)}`,
-      name: name.trim(),
-      email: email.trim(),
-      phone: phone.trim() || "017XXXXXXXX",
-      role,
-      status: initialStatus,
-      isDeleted: false,
-      joinedDate: new Date().toLocaleDateString("en-GB", {
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-      }),
-      totalOrders: 0,
-      totalSpent: 0,
-    };
-
-    const updated = [newUser, ...users];
-    AdminStorage.saveUsers(updated);
-    setUsers(updated);
-    toast.success(`New ${role} account created for ${name}`);
-    setIsModalOpen(false);
+    toast.info("Users can register via storefront signup");
   };
 
   const filteredUsers = users.filter((u) => {
@@ -121,7 +125,7 @@ export default function AdminUsersPage() {
     return matchSearch && matchRole && matchStatus;
   });
 
-  const getStatusBadge = (status: UserStatus, isDeleted: boolean) => {
+  const getStatusBadge = (status: string, isDeleted: boolean) => {
     if (isDeleted) {
       return (
         <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold bg-rose-900 text-white border border-rose-950 uppercase tracking-wider">
@@ -337,7 +341,7 @@ export default function AdminUsersPage() {
                             )}
                           </div>
                           <div className="text-[10px] text-neutral-400">
-                            Joined {u.joinedDate}
+                            Joined {new Date(u.createdAt).toLocaleDateString()}
                           </div>
                         </div>
                       </div>
@@ -382,15 +386,15 @@ export default function AdminUsersPage() {
                           value={u.status}
                           disabled={u.isDeleted}
                           onChange={(e) =>
-                            handleUpdateStatus(u, e.target.value as UserStatus)
+                            handleUpdateStatus(u, e.target.value)
                           }
                           className="text-[10px] font-bold bg-[#fbf9f6] border border-neutral-300 py-0.5 px-1.5 text-neutral-800 focus:outline-none focus:border-neutral-900 cursor-pointer disabled:opacity-40"
                         >
-                          <option value="active">Active</option>
-                          <option value="inactive">Inactive</option>
-                          <option value="suspended">Suspended</option>
-                          <option value="hold">Hold</option>
-                          <option value="banned">Banned</option>
+                          <option value="ACTIVE">Active</option>
+                          <option value="INACTIVE">Inactive</option>
+                          <option value="SUSPENDED">Suspended</option>
+                          <option value="HOLD">Hold</option>
+                          <option value="BLOCKED">Blocked</option>
                         </select>
                       </div>
                     </td>
@@ -526,14 +530,14 @@ export default function AdminUsersPage() {
                   </label>
                   <select
                     value={initialStatus}
-                    onChange={(e: any) => setInitialStatus(e.target.value as UserStatus)}
+                    onChange={(e: any) => setInitialStatus(e.target.value)}
                     className="w-full bg-[#fbf9f6] border border-neutral-200 px-3.5 py-2 text-xs text-neutral-900 focus:outline-none focus:border-neutral-900 rounded-none"
                   >
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
-                    <option value="suspended">Suspended</option>
-                    <option value="hold">Hold</option>
-                    <option value="banned">Banned</option>
+                    <option value="ACTIVE">Active</option>
+                    <option value="INACTIVE">Inactive</option>
+                    <option value="SUSPENDED">Suspended</option>
+                    <option value="HOLD">Hold</option>
+                    <option value="BLOCKED">Blocked</option>
                   </select>
                 </div>
               </div>

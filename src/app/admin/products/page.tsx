@@ -18,8 +18,15 @@ import {
   ImagePlus,
   Camera,
 } from "lucide-react";
-import { AdminStorage } from "@/services/adminStore";
-import { ProductItem } from "@/redux/service/product/productApi";
+import {
+  useGetProductsQuery,
+  useCreateProductMutation,
+  useUpdateProductMutation,
+  useDeleteProductMutation,
+  useUploadProductImageMutation,
+  ProductItem,
+} from "@/redux/service/product/productApi";
+import { useGetCategoriesQuery } from "@/redux/service/category/categoryApi";
 import RichTextEditor, { DEFAULT_FABRIC_TEMPLATE } from "@/components/admin/RichTextEditor";
 import TableSkeleton from "@/components/skeleton/TableSkeleton";
 import { toast } from "sonner";
@@ -27,8 +34,16 @@ import { toast } from "sonner";
 const ALL_SIZES = ["XS", "S", "M", "L", "XL", "XXL", "3XL"];
 
 export default function AdminProductsPage() {
-  const [products, setProducts] = useState<ProductItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { data: apiProducts, isLoading, refetch } = useGetProductsQuery();
+  const { data: apiCategories } = useGetCategoriesQuery();
+  const [createProduct, { isLoading: isCreating }] = useCreateProductMutation();
+  const [updateProduct, { isLoading: isUpdating }] = useUpdateProductMutation();
+  const [deleteProduct, { isLoading: isDeleting }] = useDeleteProductMutation();
+  const [uploadImage] = useUploadProductImageMutation();
+
+  const products: ProductItem[] = apiProducts?.data || [];
+  const categories = apiCategories?.data || [];
+
   const [searchTerm, setSearchTerm] = useState("");
   const [subCategoryFilter, setSubCategoryFilter] = useState("all");
 
@@ -43,9 +58,7 @@ export default function AdminProductsPage() {
   const [primaryImage, setPrimaryImage] = useState("");
   const [secondaryImage, setSecondaryImage] = useState("");
   const [additionalImages, setAdditionalImages] = useState<string[]>([]);
-  const [formSubCategory, setFormSubCategory] = useState<
-    "Drop-Shoulder T-Shirt" | "Sweat Shirt" | "Sweet T-Shirt" | "Hoodie"
-  >("Drop-Shoulder T-Shirt");
+  const [formSubCategory, setFormSubCategory] = useState<string>("Drop-Shoulder T-Shirt");
   const [formDescription, setFormDescription] = useState("");
   const [formFabricComposition, setFormFabricComposition] = useState(DEFAULT_FABRIC_TEMPLATE);
   const [formInStock, setFormInStock] = useState(true);
@@ -62,11 +75,6 @@ export default function AdminProductsPage() {
   const primaryFileRef = useRef<HTMLInputElement>(null);
   const secondaryFileRef = useRef<HTMLInputElement>(null);
   const additionalFileRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    setProducts(AdminStorage.getProducts());
-    setIsLoading(false);
-  }, []);
 
   const handleFileUpload = (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -221,68 +229,86 @@ export default function AdminProductsPage() {
       ...additionalImages,
     ];
 
+    const matchingCat = categories.find((c) => c.name.toLowerCase() === formSubCategory.toLowerCase() || c.slug === formSubCategory.toLowerCase()) || categories[0];
+    const categoryId = matchingCat?.id || "640000000000000000000001";
+
     if (editingProduct) {
       // Update
-      const updated: ProductItem = {
-        ...editingProduct,
+      updateProduct({
+        id: editingProduct.id,
         title: formTitle.trim(),
         price: priceNum,
         originalPrice: origPriceNum,
         imageUrl: primaryImage,
         images: allImages,
+        categoryId: editingProduct.categoryId || categoryId,
         subCategory: formSubCategory,
         description: formDescription.trim(),
         fabricComposition: formFabricComposition.trim() || undefined,
         inStock: formInStock,
         freeDelivery: formFreeDelivery,
         sizes: selectedSizes,
-      };
-
-      const newList = AdminStorage.updateProduct(updated);
-      setProducts(newList);
-      toast.success("Product updated successfully!");
+      })
+        .unwrap()
+        .then(() => {
+          toast.success("Product updated successfully!");
+          refetch();
+        })
+        .catch((err: any) => {
+          toast.error(err?.data?.message || "Failed to update product");
+        });
     } else {
       // Create
-      const newProduct: ProductItem = {
-        id: `prod-${Date.now().toString().slice(-4)}`,
+      createProduct({
         title: formTitle.trim(),
         price: priceNum,
         originalPrice: origPriceNum,
         imageUrl: primaryImage,
         images: allImages,
-        category: "Men",
+        categoryId,
         subCategory: formSubCategory,
         inStock: formInStock,
         freeDelivery: formFreeDelivery,
         sizes: selectedSizes,
         description: formDescription.trim(),
         fabricComposition: formFabricComposition.trim() || undefined,
-      };
-
-      const newList = AdminStorage.addProduct(newProduct);
-      setProducts(newList);
-      toast.success("New product published successfully!");
+      })
+        .unwrap()
+        .then(() => {
+          toast.success("New product published successfully!");
+          refetch();
+        })
+        .catch((err: any) => {
+          toast.error(err?.data?.message || "Failed to publish product");
+        });
     }
 
     setIsModalOpen(false);
   };
 
-  const handleDelete = (id: string, title: string) => {
+  const handleDelete = async (id: string, title: string) => {
     if (confirm(`Are you sure you want to delete "${title}"?`)) {
-      const updated = AdminStorage.deleteProduct(id);
-      setProducts(updated);
-      toast.info("Product removed from catalog");
+      try {
+        await deleteProduct(id).unwrap();
+        toast.info("Product removed from catalog");
+        refetch();
+      } catch (err: any) {
+        toast.error(err?.data?.message || "Failed to delete product");
+      }
     }
   };
 
-  const toggleStockStatus = (p: ProductItem) => {
-    const updated: ProductItem = {
-      ...p,
-      inStock: !p.inStock,
-    };
-    const newList = AdminStorage.updateProduct(updated);
-    setProducts(newList);
-    toast.success(`${p.title} stock marked as ${!p.inStock ? "In Stock" : "Out of Stock"}`);
+  const toggleStockStatus = async (p: ProductItem) => {
+    try {
+      await updateProduct({
+        id: p.id,
+        inStock: !p.inStock,
+      }).unwrap();
+      toast.success(`${p.title} stock marked as ${!p.inStock ? "In Stock" : "Out of Stock"}`);
+      refetch();
+    } catch (err: any) {
+      toast.error("Failed to update stock status");
+    }
   };
 
   const filteredProducts = products.filter((p) => {

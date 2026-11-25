@@ -91,8 +91,8 @@ export default function HeroLensModal({ slide, onClose }: HeroLensModalProps) {
           >
             {/* Base Image */}
             <img
-              src={slide.productImage}
-              alt={slide.productTitle}
+              src={slide.productImage || slide.imageUrl}
+              alt={slide.productTitle || slide.title}
               className="w-full h-full object-cover object-top pointer-events-none"
             />
 
@@ -108,8 +108,8 @@ export default function HeroLensModal({ slide, onClose }: HeroLensModalProps) {
                 className="absolute rounded-xs overflow-hidden border-2 border-white shadow-[0_12px_40px_rgba(0,0,0,0.5)] pointer-events-none ring-1 ring-black/40 z-20 bg-neutral-100"
               >
                 <img
-                  src={slide.productImage}
-                  alt={slide.productTitle}
+                  src={slide.productImage || slide.imageUrl}
+                  alt={slide.productTitle || slide.title}
                   className="absolute max-w-none pointer-events-none select-none"
                   style={{
                     width: `${lensPos.width * zoomFactor}px`,
@@ -144,10 +144,10 @@ export default function HeroLensModal({ slide, onClose }: HeroLensModalProps) {
                 Featured Hero Product
               </span>
               <h2 className="text-lg sm:text-xl font-bold text-neutral-900 leading-snug">
-                {slide.productTitle}
+                {slide.productTitle || slide.title}
               </h2>
               <p className="text-base font-extrabold text-neutral-900 mt-1">
-                ৳ {slide.productPrice.toFixed(2)}
+                ৳ {slide.productPrice ? slide.productPrice.toFixed(2) : "0.00"}
               </p>
             </div>
 

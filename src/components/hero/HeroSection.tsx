@@ -51,7 +51,9 @@ export default function HeroSection() {
     (currentSlide?.align === undefined && currentIndex % 2 === 1);
 
   const handleBannerClick = () => {
-    if (currentSlide?.productId) {
+    if (currentSlide?.ctaLink) {
+      router.push(currentSlide.ctaLink);
+    } else if (currentSlide?.productId) {
       router.push(`/product/${currentSlide.productId}`);
     }
   };

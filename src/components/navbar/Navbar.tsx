@@ -12,6 +12,7 @@ import {
   LogOut,
   LayoutDashboard,
   ChevronDown,
+  AlertCircle,
 } from "lucide-react";
 import XovaarLogo from "./XovaarLogo";
 import { useGetNavCategoriesQuery } from "@/redux/service/banner/bannerApi";
@@ -78,11 +79,23 @@ export default function Navbar() {
     }
   }, []);
 
-  const handleLogout = () => {
+  const [showDefaultPasswordWarningModal, setShowDefaultPasswordWarningModal] = useState(false);
+
+  const performLogout = () => {
+    setShowDefaultPasswordWarningModal(false);
     setProfileDropdownOpen(false);
     dispatch(logout());
     AdminStorage.setAdminLoggedIn(false);
     toast.success("Logged out successfully");
+  };
+
+  const handleLogout = () => {
+    setProfileDropdownOpen(false);
+    if (user?.isDefaultPassword) {
+      setShowDefaultPasswordWarningModal(true);
+      return;
+    }
+    performLogout();
   };
 
   return (
@@ -394,9 +407,6 @@ export default function Navbar() {
         )}
       </header>
 
-      {/* Navbar Height Placeholder to preserve normal document flow without jitter */}
-      <div className="h-14 md:h-16 w-full shrink-0" aria-hidden="true" />
-
       {/* Slide-over Cart Drawer */}
       <CartDrawer />
 
@@ -444,6 +454,56 @@ export default function Navbar() {
           setAuthModalOpen(true);
         }}
       />
+
+      {/* Default Password Logout Warning Modal */}
+      {showDefaultPasswordWarningModal && (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/75 backdrop-blur-xs flex items-center justify-center p-4">
+          <div
+            className="relative bg-white text-neutral-900 border border-neutral-300 rounded-none w-full max-w-md shadow-2xl p-6 sm:p-7 animate-in zoom-in-95 duration-150"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+                <AlertCircle size={22} />
+              </div>
+              <div>
+                <h3 className="text-sm font-extrabold uppercase tracking-wider text-neutral-900">
+                  Account Security Notice
+                </h3>
+                <p className="text-[11px] text-neutral-500 font-medium">
+                  Default credentials detected
+                </p>
+              </div>
+            </div>
+
+            <p className="text-xs text-neutral-700 leading-relaxed bg-[#fbf9f6] p-3.5 border border-neutral-200">
+              Please add your email for future easy password recovery and change your password.
+              Your current default password is{" "}
+              <strong className="text-neutral-950 font-mono font-bold bg-neutral-200 px-1.5 py-0.5">
+                12345678
+              </strong>
+              .
+            </p>
+
+            <div className="mt-5 flex flex-col sm:flex-row gap-2.5">
+              <Link
+                href="/profile"
+                onClick={() => setShowDefaultPasswordWarningModal(false)}
+                className="flex-1 py-2.5 bg-neutral-950 hover:bg-black text-white text-xs font-bold uppercase tracking-wider text-center transition-colors"
+              >
+                Change Password Now
+              </Link>
+              <button
+                type="button"
+                onClick={performLogout}
+                className="py-2.5 px-4 border border-neutral-300 hover:bg-neutral-100 text-neutral-700 text-xs font-semibold uppercase tracking-wider transition-colors cursor-pointer"
+              >
+                Logout Anyway
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

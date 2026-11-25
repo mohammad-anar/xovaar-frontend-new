@@ -3,16 +3,20 @@ import { baseApi } from "@/redux/api/baseApi";
 export interface ProductItem {
   id: string;
   title: string;
+  slug?: string;
   price: number;
-  originalPrice: number;
+  originalPrice?: number | null;
   imageUrl: string;
   images: string[];
   category: string;
-  subCategory: "Drop-Shoulder T-Shirt" | "Sweat Shirt" | "Sweet T-Shirt" | "Hoodie";
+  categoryId?: string;
+  subCategory: "Drop-Shoulder T-Shirt" | "Sweat Shirt" | "Sweet T-Shirt" | "Hoodie" | string;
   inStock?: boolean;
+  stockQuantity?: number;
   freeDelivery?: boolean;
   description?: string;
   sizes?: string[];
+  isDeleted?: boolean;
   fabricComposition?:
     | string
     | {
@@ -445,6 +449,43 @@ export const productApi = baseApi.injectEndpoints({
       }),
       providesTags: (_result, _error, id) => [{ type: "products", id }],
     }),
+    getProductBySlugOrId: builder.query<{ success: boolean; data: ProductItem }, string>({
+      query: (slugOrId) => ({
+        url: `/products/${slugOrId}`,
+        method: "GET",
+      }),
+      providesTags: (_result, _error, id) => [{ type: "products", id }],
+    }),
+    createProduct: builder.mutation<{ success: boolean; data: ProductItem }, any>({
+      query: (body) => ({
+        url: "/products",
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["products", "categories", "analytics"],
+    }),
+    updateProduct: builder.mutation<{ success: boolean; data: ProductItem }, { id: string } & any>({
+      query: ({ id, ...body }) => ({
+        url: `/products/${id}`,
+        method: "PATCH",
+        body,
+      }),
+      invalidatesTags: ["products", "categories", "analytics"],
+    }),
+    deleteProduct: builder.mutation<{ success: boolean; data: ProductItem }, string>({
+      query: (id) => ({
+        url: `/products/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["products", "categories", "analytics"],
+    }),
+    uploadProductImage: builder.mutation<{ success: boolean; data: { imageUrl: string } }, FormData>({
+      query: (body) => ({
+        url: "/products/upload-image",
+        method: "POST",
+        body,
+      }),
+    }),
   }),
 });
 
@@ -452,4 +493,9 @@ export const {
   useGetNewArrivalsQuery,
   useGetProductsQuery,
   useGetProductByIdQuery,
+  useGetProductBySlugOrIdQuery,
+  useCreateProductMutation,
+  useUpdateProductMutation,
+  useDeleteProductMutation,
+  useUploadProductImageMutation,
 } = productApi;

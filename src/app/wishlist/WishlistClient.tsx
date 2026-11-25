@@ -4,8 +4,9 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks/hooks";
-import { removeFromWishlist } from "@/redux/features/wishlist";
+import { removeFromWishlist, toggleWishlist } from "@/redux/features/wishlist";
 import { addToCart } from "@/redux/features/cart";
+import { useGetWishlistQuery, useToggleWishlistMutation } from "@/redux/service/wishlist/wishlistApi";
 import { Heart, Trash2, ShoppingBag, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { ProductItem } from "@/redux/service/product/productApi";
@@ -13,7 +14,16 @@ import { ProductGridSkeleton } from "@/components/skeleton";
 
 export default function WishlistClient() {
   const dispatch = useAppDispatch();
-  const { items } = useAppSelector((state) => state.wishlist);
+  const token = useAppSelector((state) => state.auth?.accessToken);
+  const { data: apiWishlist } = useGetWishlistQuery(undefined, { skip: !token });
+  const [toggleWishlistApi] = useToggleWishlistMutation();
+
+  const reduxItems = useAppSelector((state) => state.wishlist.items);
+  const items: ProductItem[] =
+    token && apiWishlist?.data && apiWishlist.data.length > 0
+      ? apiWishlist.data
+      : reduxItems;
+
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -32,6 +42,9 @@ export default function WishlistClient() {
       })
     );
     dispatch(removeFromWishlist(product.id));
+    if (token) {
+      toggleWishlistApi(product.id).catch(() => {});
+    }
     toast.success("Moved to Shopping Bag", {
       description: `${product.title} (Size: M)`,
     });
@@ -39,6 +52,9 @@ export default function WishlistClient() {
 
   const handleRemove = (id: string, title: string) => {
     dispatch(removeFromWishlist(id));
+    if (token) {
+      toggleWishlistApi(id).catch(() => {});
+    }
     toast.info("Removed from wishlist", { description: title });
   };
 

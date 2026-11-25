@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
+import { motion } from "framer-motion";
 
 interface MomentItem {
   id: string;
@@ -105,18 +106,36 @@ export default function XovaarFamilySection() {
       `}</style>
 
       {/* Header Area Centered - Xovaar Community */}
-      <div className="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 mb-6 md:mb-8 text-center">
+      <motion.div
+        initial={{ opacity: 0, y: 25 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.3 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+        className="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 mb-6 md:mb-8 text-center"
+      >
         <h2 className="text-2xl sm:text-3xl md:text-4xl font-black uppercase tracking-tight text-neutral-950 font-sans">
           Xovaar Community
         </h2>
         <p className="text-xs sm:text-sm text-neutral-500 font-normal mt-1">
           Wear Your Identity . Define Your Style
         </p>
-        <div className="w-12 h-1 bg-[#16A34A] mt-2.5 rounded-full mx-auto" />
-      </div>
+        <motion.div
+          initial={{ width: 0 }}
+          whileInView={{ width: 48 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="h-1 bg-[#16A34A] mt-2.5 rounded-full mx-auto"
+        />
+      </motion.div>
 
       {/* Infinite Slider Track inside Container - Right to Left Slow Smooth Motion */}
-      <div className="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.2 }}
+        transition={{ duration: 0.7, delay: 0.15 }}
+        className="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8"
+      >
         <div
           className="relative w-full overflow-hidden"
           onMouseEnter={() => setIsPaused(true)}
@@ -161,7 +180,7 @@ export default function XovaarFamilySection() {
             ))}
           </div>
         </div>
-      </div>
+      </motion.div>
     </section>
   );
 }

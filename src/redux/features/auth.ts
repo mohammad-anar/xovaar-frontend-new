@@ -8,6 +8,7 @@ export type UserType = {
   role?: string;
   userId?: string;
   name?: string;
+  isDefaultPassword?: boolean;
 };
 
 interface AuthState {

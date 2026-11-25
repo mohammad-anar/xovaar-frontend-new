@@ -108,25 +108,6 @@ export default function Footer() {
                   Contact Us
                 </Link>
               </li>
-              <li>
-                <Link
-                  href="/careers"
-                  className="hover:text-white transition-colors"
-                >
-                  Careers
-                </Link>
-              </li>
-              <li className="pt-2 border-t border-neutral-700/60">
-                <Link
-                  href="/admin"
-                  className="text-[#16A34A] hover:text-white transition-colors flex items-center gap-1 font-semibold"
-                >
-                  <span>Admin Console</span>
-                  <span className="text-[10px] bg-[#16A34A] text-white px-1.5 py-0.2 rounded font-bold uppercase">
-                    Portal
-                  </span>
-                </Link>
-              </li>
             </ul>
           </div>
 

@@ -14,12 +14,33 @@ import {
   Mail,
   Bell,
 } from "lucide-react";
-import { AdminStorage, AdminSettings } from "@/services/adminStore";
+import {
+  useGetSettingsQuery,
+  useUpdateSettingsMutation,
+  useUpdateAdminProfileMutation,
+  StoreSettings,
+} from "@/redux/service/settings/settingsApi";
 import { toast } from "sonner";
 
 export default function AdminSettingsPage() {
+  const { data: apiSettings, isLoading } = useGetSettingsQuery();
+  const [updateSettings, { isLoading: isSavingSettings }] = useUpdateSettingsMutation();
+  const [updateAdminProfile, { isLoading: isSavingProfile }] = useUpdateAdminProfileMutation();
+
   const [activeTab, setActiveTab] = useState<"store" | "profile">("store");
-  const [settings, setSettings] = useState<AdminSettings>(AdminStorage.getSettings());
+  const [settings, setSettings] = useState<Partial<StoreSettings>>({
+    storeName: "XOVAAR",
+    storeTagline: "Aura Streetwear & Minimalist Luxury",
+    supportEmail: "support@xovaar.com",
+    supportPhone: "+880 1700-000000",
+    currency: "BDT (৳)",
+    insideDhakaShipping: 70,
+    outsideDhakaShipping: 130,
+    freeShippingThreshold: 2500,
+    noticeTicker: "FREE SHIPPING ON ORDERS OVER ৳2,500 | CASH ON DELIVERY AVAILABLE NATIONWIDE",
+    adminName: "XOVAAR Admin",
+    adminEmail: "admin@xovaar.com",
+  });
 
   // Password fields
   const [currentPassword, setCurrentPassword] = useState("");
@@ -27,24 +48,35 @@ export default function AdminSettingsPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
 
   useEffect(() => {
-    setSettings(AdminStorage.getSettings());
-  }, []);
+    if (apiSettings?.data) {
+      setSettings(apiSettings.data);
+    }
+  }, [apiSettings]);
 
-  const handleSaveStoreSettings = (e: React.FormEvent) => {
+  const handleSaveStoreSettings = async (e: React.FormEvent) => {
     e.preventDefault();
-    AdminStorage.saveSettings(settings);
-    toast.success("Store configurations updated successfully!", {
-      description: "Shipping rates and notice banner updated across storefront.",
-    });
+    try {
+      await updateSettings(settings).unwrap();
+      toast.success("Store configurations updated successfully!");
+    } catch (err: any) {
+      toast.error(err?.data?.message || "Failed to save settings");
+    }
   };
 
-  const handleUpdateProfile = (e: React.FormEvent) => {
+  const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    AdminStorage.saveSettings(settings);
-    toast.success("Admin profile details saved!");
+    try {
+      await updateAdminProfile({
+        name: settings.adminName,
+        email: settings.adminEmail,
+      }).unwrap();
+      toast.success("Admin profile details saved!");
+    } catch (err: any) {
+      toast.error(err?.data?.message || "Failed to update profile");
+    }
   };
 
-  const handleChangePassword = (e: React.FormEvent) => {
+  const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentPassword || !newPassword) {
       toast.error("Please fill in current and new password");
@@ -54,12 +86,18 @@ export default function AdminSettingsPage() {
       toast.error("New passwords do not match");
       return;
     }
-    toast.success("Password changed successfully!", {
-      description: "Please remember your new administrator password.",
-    });
-    setCurrentPassword("");
-    setNewPassword("");
-    setConfirmPassword("");
+    try {
+      await updateAdminProfile({
+        currentPassword,
+        newPassword,
+      }).unwrap();
+      toast.success("Password changed successfully!");
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (err: any) {
+      toast.error(err?.data?.message || "Failed to update password");
+    }
   };
 
   return (
