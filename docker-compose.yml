@@ -1,0 +1,15 @@
+version: "3.8"
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: https://api.xovaar.com/api/v1
+    container_name: xovaar-frontend
+    restart: always
+    ports:
+      - "3002:3002"
+    env_file:
+      - .env
