@@ -106,7 +106,7 @@ export default function BestSalesSlider() {
             return (
               <Link
                 key={`slider-card-${product?.id}-${idx}`}
-                href={`/product/${product?.id}`}
+                href={product?.slug ? `/product/${product.slug}` : product?.id ? `/product/${product.id}` : "/shop"}
                 className="group w-[240px] sm:w-[270px] md:w-[285px] shrink-0 bg-white border border-neutral-200/90 rounded-[20px] overflow-hidden shadow-2xs hover:shadow-lg transition-all duration-300 flex flex-col justify-between cursor-pointer"
               >
                 {/* Product Image Area with Slide-Up Close Shot on Hover */}

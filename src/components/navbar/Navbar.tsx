@@ -44,12 +44,28 @@ export default function Navbar() {
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const { data: apiCategories } = useGetNavCategoriesQuery();
-  const rawCategories =
+
+  // The /categories API returns {id, name, slug, parentCategory, ...} — map to {id, label, href}
+  const rawCategories: { id: string; label: string; href: string }[] =
     Array.isArray(apiCategories?.data) && apiCategories.data.length > 0
-      ? apiCategories.data
+      ? (apiCategories.data as Array<{
+          id?: string;
+          label?: string;
+          href?: string;
+          name?: string;
+          slug?: string;
+        }>).map((cat) => ({
+          id: cat.id || cat.slug || "",
+          label: cat.label || cat.name || "",
+          href: cat.href || `/shop?category=${encodeURIComponent(cat.slug || cat.name || "")}`,
+        }))
       : DEFAULT_CATEGORIES;
+
   const categories = rawCategories.filter(
-    (cat) => cat.id !== "all-men" && cat.label?.trim().toUpperCase() !== "MEN"
+    (cat) =>
+      cat.id !== "all-men" &&
+      cat.href &&                           // must have a valid href
+      cat.label?.trim().toUpperCase() !== "MEN"
   );
 
   const dispatch = useAppDispatch();

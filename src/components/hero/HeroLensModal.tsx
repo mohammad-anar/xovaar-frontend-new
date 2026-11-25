@@ -160,7 +160,10 @@ export default function HeroLensModal({ slide, onClose }: HeroLensModalProps) {
 
             <div className="pt-2">
               <Link
-                href={`/product/${slide.productId}`}
+                href={
+                  slide?.ctaLink ||
+                  (slide?.productId ? `/product/${slide.productId}` : "/shop")
+                }
                 onClick={onClose}
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-neutral-900 hover:bg-black text-white text-xs font-bold uppercase tracking-wider px-5 py-3 rounded transition-all shadow hover:shadow-md cursor-pointer"
               >

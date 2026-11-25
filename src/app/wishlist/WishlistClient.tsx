@@ -11,6 +11,7 @@ import { Heart, Trash2, ShoppingBag, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { ProductItem } from "@/redux/service/product/productApi";
 import { ProductGridSkeleton } from "@/components/skeleton";
+import { getImageUrl } from "@/lib/utils";
 
 export default function WishlistClient() {
   const dispatch = useAppDispatch();
@@ -114,11 +115,12 @@ export default function WishlistClient() {
               >
                 {/* Image with Slide-Up Close View */}
                 <div className="relative w-full aspect-[4/5] bg-neutral-100 overflow-hidden">
-                  <Link href={`/product/${product?.id}`} className="block w-full h-full relative">
+                  <Link href={product?.id ? `/product/${product.id}` : "/shop"} className="block w-full h-full relative">
                     <Image
-                      src={product?.imageUrl}
-                      alt={product?.title}
+                      src={getImageUrl(product?.imageUrl || product?.images?.[0] || "/products/product-1.jpg")}
+                      alt={product?.title || ""}
                       fill
+                      unoptimized={(product?.imageUrl || "").startsWith("data:")}
                       className="object-cover object-top select-none"
                     />
 
@@ -126,9 +128,10 @@ export default function WishlistClient() {
                     {product?.images && product?.images.length > 1 && (
                       <div className="absolute inset-0 translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out will-change-transform overflow-hidden z-1 bg-neutral-100">
                         <Image
-                          src={product?.images[1]}
-                          alt={`${product?.title} close view`}
+                          src={getImageUrl(product?.images[1])}
+                          alt={`${product?.title || ""} close view`}
                           fill
+                          unoptimized={(product?.images[1] || "").startsWith("data:")}
                           className="object-cover object-center scale-115 transition-transform duration-700 ease-out select-none"
                         />
                         <div className="absolute bottom-2 left-2 z-10 pointer-events-none">
@@ -157,7 +160,7 @@ export default function WishlistClient() {
                       {product?.subCategory || "Men"}
                     </span>
                     <Link
-                      href={`/product/${product?.id}`}
+                      href={product?.id ? `/product/${product.id}` : "/shop"}
                       className="block text-xs font-bold text-neutral-900 hover:underline line-clamp-1 mt-0.5"
                     >
                       {product?.title}
